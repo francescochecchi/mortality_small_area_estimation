@@ -60,7 +60,7 @@
 #.........................................................................................
     
   # Select country of analysis
-  country <- "nga"  # "ssd" for S Sudan, "som" for Somalia, "nga" for Nigeria, "drc" for Democratic Republic of Congo
+  country <- "som"  # "ssd" for S Sudan, "som" for Somalia, "nga" for Nigeria, "drc" for Democratic Republic of Congo
   
   # Substrings to be used for finding livelihood variables and standardising livelihood terms
   livelihood_substrings <- list( 
