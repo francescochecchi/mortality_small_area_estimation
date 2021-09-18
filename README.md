@@ -8,6 +8,9 @@ London School of Hygiene and Tropical Medicine
 ## Background
 This repository contains R scripts and input datasets/parameter files (all .xslx or .csv) needed to replicate analysis of crisis-attributable mortality during a food insecurity crisis in Somalia (2016-2018). Input files for Somalia are provided here to illustrate and allow for replication of the small-area estimation method used for the analysis. However, the method has been also applied to crises in South Sudan, Nigeria and the Democratic Republic of Congo. With the exception of script `mortality_sae_2_reconstruct_pop_som.r`, all other R scripts are generic, and the structure of input files ia also standardised, i.e. can support application of the estimation method in a new crisis. A full presentation of the estimation method is provided in [this paper](https://www.researchgate.net/publication/352199853_A_Method_for_Small-Area_Estimation_of_Population_Mortality_in_Settings_Affected_by_Crises).
 
+## Requirements for analysis replication
+Datasets/parameter files and R script files must be stored on the same folder, where output files will be saved. The `survey_datasets.zip` file should be unzipped to a `/survey_datasets/` sub-folder. The directory for reading files is set automatically while the control code is run. It is recommended to run the code from the open-source [RStudio](https://rstudio.com/) interface.
+
 ## Description of input data/parameter files
 [xxx] refers to the country code - in this case, `som` for Somalia.
 
