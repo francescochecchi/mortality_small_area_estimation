@@ -32,7 +32,7 @@ Notes:
 #### `mortality_sae_0_control_code.R`
 
 | Sub-steps implemented | Required data inputs | Outputs |
-| ------------------------------------- | ------------------------------------- | ------------------------------------- |
+| --------------------- | -------------------- | ------- |
 | - install R packages; <br> - read input datasets; <br> - read and declare parameters; <br> - source other dependent scripts (below) | - `[xxx]_analysis_strata.xlsx` <br> - `[xxx]_survey_metadata.xlsx` <br> - Individual raw datasets of SMART surveys (see above) <br> - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_predictor_data.xlsx` <br> - `[xxx]_demog_data.xlsx` | none |
 
 Note: Any dependent script can also run by executing the script itself or a portion of it.
