@@ -31,7 +31,7 @@ Notes:
 
 #### `mortality_sae_0_control_code.R`
 
-| <img width=500/>Sub-steps implemented<img width=500/>|<img width=500/>Required data inputs<img width=500/>|<img width=500/>Outputs<img width=500/>|
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | ------------------------------------- | ------------------------------------- | ------------------------------------- |
 | - install R packages; <br> - read input datasets; <br> - read and declare parameters; <br> - source other dependent scripts (below) | - `[xxx]_analysis_strata.xlsx` <br> - `[xxx]_survey_metadata.xlsx` <br> - Individual raw datasets of SMART surveys (see above) <br> - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_predictor_data.xlsx` <br> - `[xxx]_demog_data.xlsx` | none |
 
@@ -39,13 +39,13 @@ Note: Any dependent script can also run by executing the script itself or a port
 
 #### `mortality_sae_0_functions.R`
 
-| <img width=500/>Sub-steps implemented<img width=500/>|<img width=500/>Required data inputs<img width=500/>|<img width=500/>Outputs<img width=500/>|
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | --------------------- | -------------------- | ------- |
 | - declare bespoke functions used by different scripts |  | none |
 
 #### `mortality_sae_1_manage_surveys.R`
 
-| Sub-steps implemented | Required data inputs | Outputs |
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | --------------------- | -------------------- | ------- |
 | - reanalyse each survey and estimate additional demographic indicators; <br> - explore survey availability across crisis person-time; <br> - prepare survey observations for further analysis steps | - `[xxx]_survey_metadata.xlsx` <br> - Individual raw datasets of SMART surveys (see above) | - Re-analysed survey estimates <br> - Graphs and table of descriptive survey patterns <br> - Merged and reshaped survey observations |
 
@@ -53,7 +53,7 @@ Note: Would need to be modified if mortality sources other than SMART surveys ar
 
 #### `mortality_sae_2_reconstruct_pop_[xxx].R`
 
-| Sub-steps implemented | Required data inputs | Outputs |
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | --------------------- | -------------------- | ------- |
 | - reconstruct population denominators for each stratum by combining census estimates, internal displacement and refugee data; <br> - estimate the proportion of IDPs as well as in- and out-migration rates | - `[xxx]_analysis_strata.xlsx` <br> - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_demog_data.xlsx` | - Reconstructed population (including under 5y) denominators and IDP figures / proportions <br> - Graphs of trends in denominators |
 
@@ -61,13 +61,13 @@ Note: This script is country-specific at present.
 
 #### `mortality_sae_3_manage_predictors.R`
 
-| Sub-steps implemented | Required data inputs | Outputs |
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | --------------------- | -------------------- | ------- |
 | - merge predictors into one time series; <br> - transform predictor values into rate; <br> - visualise completeness and apply completeness cut-offs; <br> - perform specified manual and automated imputations; <br> - compute rolling means and lags; <br> - smooth and/or interpolate; <br> - prepare datasets for model fitting | - `[xxx]_analysis_strata.xlsx` <br> - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_predictor_data.xlsx`| - Graphs of completeness and smoothed time series <br> - Predictor values for each kt stratum <br> - Average predictor values over the recall period of each survey (or survey stratum) |
 
 #### `mortality_sae_4_predictive_model.R`
 
-| Sub-steps implemented | Required data inputs | Outputs |
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | --------------------- | -------------------- | ------- |
 | - explore predictor distributions; <br> - categorise predictors; <br> - univariate analysis (categorical vs. continuous, best-fitting lag, screening out predictors with low association); <br> - brute force search across all candidate models; <br> - select best fixed-effects model based on cross-validation; <br> - explore interactions; <br> - fit mixed model and select between fixed-effects only and mixed option; <br> - calculate robust standard errors if fixed-effects model is selected; <br> - compute and graph various metrics of model performance; <br> - save model for subsequent steps | - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_predictor_data.xlsx` | - Graphs of predictor distributions <br> - Fit statistics for each model evaluated by brute force <br> - Cross-validation fit statistics for most promising models <br> - Goodness-of-fit graphs, performance metrics and saved fits for the best models |
 
@@ -77,7 +77,7 @@ Notes:
 
 #### `mortality_sae_5_estimate_mortality.R`
 
-| Sub-steps implemented | Required data inputs | Outputs |
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | --------------------- | -------------------- | ------- |
 | - create counterfactual datasets for each scenario; <br> - implement excess death toll estimation for three counterfactual scenarios (best, worst, most likely); <br> - aggregate death toll estimates as desired and create graphs and tables | - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_demog_data.xlsx` <br> - any counterfactual datasets | - Graphs, tables and datasets of actual, counterfactual and excess death tolls and rates, for all ages and under 5y, by stratum, time unit as well as higher aggregations and overall |
 
@@ -87,7 +87,7 @@ Notes:
 
 ##### `mortality_sae_6_sensitivity_analyses.R`
 
-| Sub-steps implemented | Required data inputs | Outputs |
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Sub-steps implemented &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  Required data inputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Outputs &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |
 | --------------------- | -------------------- | ------- |
 | - sensitivity analysis of population and displacement data; <br> - sensitivity analysis of under 5y mortality underreporting; <br> - implemented by creating new input datasets that incorporate sensitivity assumptions, and re-running all analysis steps | - `[xxx]_analysis_parameters.xlsx` | Graphs and datasets of death toll estimates for each set of sensitivity parameter values. To reduce computational intensity, this script only computes point estimates for each set of sensitivity parameter values, and omits various optional sub-steps. |
 
