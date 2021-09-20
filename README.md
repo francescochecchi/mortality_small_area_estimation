@@ -20,6 +20,7 @@ Datasets/parameter files and R script files must be stored on the same folder, w
 *	`[xxx]_predictor_data.xlsx`: this file contains a master table of all predictor datasets, with characteristics of each and options for how to manage them (script 3), including reshaping and aggregation, imputation, smoothing, interpolation, creation of lags, etc.;
 *	`[xxx]_demog_data.xlsx`: while script 2 (population reconstruction) as mentioned below will need to be developed for each crisis, maintaining the same data input structure as shown in the sample dataset is recommended to avoid script execution problems; generally this will include a table of all population and displacement datasets used, a worksheet with specific demographic parameters (e.g. birth rate), and the datasets themselves;
 *	`[xxx]_analysis_parameters.xlsx`: this is the main file enabling the user to interact with the analysis, and consists of a <general_parameters> worksheet (needed for all scripts) where various parameters needed across the analysis are declared; a <predictor_parameters> worksheet (scripts 4-6) wherein all variables to be considered in model fitting should be listed, with options to force their inclusion or exclusion, retain specific lags, categorise them, consider them in interaction terms, etc.; a <counterfactual_parameters> worksheet (scripts 5-6) where best, worst and most likely scenario values for both predictors and population input datasets are declared, so as to create corresponding counterfactual scenarios; and a <sensitivity_parameters> worksheet (script 6) where the user can specify sensitivity ranges for specific datasets (identified by their R object name).
+*	Any additional datasets (.csv) that specify counterfactual values to be used for a given predictor or demographic dataset. For the Somalia analysis, `som_idp_prmn_counterfactuals.csv` is included to this repository. Note that this is not the only way to specify counterfactuals (see related tab of `[xxx]_analysis_parameters.xslx`).
 
 Generally, dictionaries within each file are not just informational, but also determine which specific variables within each worksheet are read by the scripts. As such, they should be modified with care, and any additional variable or parameter added to any worksheet should be reflected within the corresponding dictionary.
 
@@ -37,11 +38,13 @@ Notes:
 
 Note: Any dependent script can also run by executing the script itself or a portion of it.
 
+
 ##### `mortality_sae_0_functions.R`
 
 | Sub-steps implemented | Required data inputs | Outputs |
 | --------------------- | -------------------- | ------- |
 | - declare bespoke functions used by different scripts |  | none |
+
 
 ##### `mortality_sae_1_manage_surveys.R`
 
@@ -51,6 +54,7 @@ Note: Any dependent script can also run by executing the script itself or a port
 
 Note: Would need to be modified if mortality sources other than SMART surveys are introduced.
 
+
 ##### `mortality_sae_2_reconstruct_pop_[xxx].R`
 
 | Sub-steps implemented | Required data inputs | Outputs |
@@ -59,13 +63,15 @@ Note: Would need to be modified if mortality sources other than SMART surveys ar
 
 Note: This script is country-specific at present.
 
+
 ##### `mortality_sae_3_manage_predictors.R`
 
 | Sub-steps implemented | Required data inputs | Outputs |
 | --------------------- | -------------------- | ------- |
 | - merge predictors into one time series; <br> - transform predictor values into rate; <br> - visualise completeness and apply completeness cut-offs; <br> - perform specified manual and automated imputations; <br> - compute rolling means and lags; <br> - smooth and/or interpolate; <br> - prepare datasets for model fitting | - `[xxx]_analysis_strata.xlsx` <br> - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_predictor_data.xlsx`| - Graphs of completeness and smoothed time series <br> - Predictor values for each kt stratum <br> - Average predictor values over the recall period of each survey (or survey stratum) |
 
-#####`mortality_sae_4_predictive_model.R`
+
+##### `mortality_sae_4_predictive_model.R`
 
 | Sub-steps implemented | Required data inputs | Outputs |
 | --------------------- | -------------------- | ------- |
@@ -75,15 +81,17 @@ Notes:
 * Needs to be run twice, once for CDR and once for U5DR.
 * **Very computationally intensive** (at least 5-10 hours on a standard laptop). Execution time depends mostly on: (i) how many models are being evaluated by brute force; (ii) number of folds for cross-validation (recommend 10 folds maximum); (iii) whether mixed model is fit and selected as best model.
 
+
 ##### `mortality_sae_5_estimate_mortality.R`
 
 | Sub-steps implemented | Required data inputs | Outputs |
 | --------------------- | -------------------- | ------- |
-| - create counterfactual datasets for each scenario; <br> - implement excess death toll estimation for three counterfactual scenarios (best, worst, most likely); <br> - aggregate death toll estimates as desired and create graphs and tables | - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_demog_data.xlsx` | - Graphs, tables and datasets of actual, counterfactual and excess death tolls and rates, for all ages and under 5y, by stratum, time unit as well as higher aggregations and overall |
+| - create counterfactual datasets for each scenario; <br> - implement excess death toll estimation for three counterfactual scenarios (best, worst, most likely); <br> - aggregate death toll estimates as desired and create graphs and tables | - `[xxx]_analysis_parameters.xlsx` <br> - `[xxx]_demog_data.xlsx` <br> - any counterfactual datasets | - Graphs, tables and datasets of actual, counterfactual and excess death tolls and rates, for all ages and under 5y, by stratum, time unit as well as higher aggregations and overall |
 
 Notes:
 * Section on creating counterfactual population denominators may need to be modified if the step 2 script cannot be harmonised with this script.
 * **Computationally intensive** if > 1000 bootstrap samples are drawn.
+
 
 ##### `mortality_sae_6_sensitivity_analyses.R`
 
