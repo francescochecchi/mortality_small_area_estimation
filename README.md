@@ -73,7 +73,7 @@ Note: This script is country-specific at present.
 
 Notes:
 * Needs to be run twice, once for CDR and once for U5DR.
-* **Very computationally intensive** (at least 5-10 hours on a standard laptop). Execution time depends mostly on: (i) how many models are being evaluated by brute force; (ii) number of folds for cross-validation (recommend 10 folds maximum); (iii) whether mixed model is fit and selected as best model.
+* **Very computationally intensive** (at least 5-10 hours on a standard laptop). Execution time depends mostly on: (i) how many models are being evaluated by brute force; (ii) number of folds for cross-validation (recommend 10 folds maximum); (iii) whether mixed model is fit and selected as best model (the script runs much faster if only a fixed-effects model is fitted).
 
 #### :ballot_box_with_check: `mortality_sae_5_estimate_mortality.R`
 
