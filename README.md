@@ -1,7 +1,11 @@
 ## A method for small-area estimation of population mortality in settings affected by crises
 Francesco Checchi, Adrienne Testa, Amy Gimma, Emilie Koum-Besson, Abdihamid Warsame
 
+francesco.checchi@lshtm.ac.uk
+
 London School of Hygiene and Tropical Medicine
+
+Funding support: United States Institute of Peace, UK Foreign Commonwealth and Development Office, UK Research and Innovation
 
 # Explanation of R analysis scripts and input data files
 
