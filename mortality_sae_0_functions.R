@@ -487,7 +487,7 @@ f_plot_pred <- function(f_fit, f_part_unit, f_re) {
   # (based on https://stackoverflow.com/questions/3790116/using-clustered-covariance-matrix-in-predict-lm?noredirect=1&lq=1 )
 #.........................................................................................
 
-f_predict <- function(f_fit, f_vcov_cl, f_newdata, f_se.fit) {
+f_predict <- function(f_fit, f_vcov_cl, f_newdata, f_se_fit) {
     
   # if new data are missing, revert to predicting on training dataset
   if (missing(f_newdata)) { f_newdata <- f_fit$model }
@@ -502,12 +502,12 @@ f_predict <- function(f_fit, f_vcov_cl, f_newdata, f_se.fit) {
   m_coef <- f_fit$coef
     
   # generate predictions on the desired scale, as well as standard errors for the predictions
-  if (family(fit_glm)[2] == "log") {fit <- as.vector(m_mat %*% f_fit$coef)}
-  if (family(fit_glm)[2] == "linear") {fit <- exp(as.vector(m_mat %*% f_fit$coef))}
+  if (family(f_fit)[2] == "log") {out <- as.vector(m_mat %*% f_fit$coef)}
+  if (family(f_fit)[2] == "linear") {out <- exp(as.vector(m_mat %*% f_fit$coef))}
   se_fit <- sqrt(diag(m_mat %*% f_vcov_cl %*% t(m_mat)))
     
   # return predictions or standard errors, as desired      
-  if (f_se_fit == TRUE) {return(se_fit)} else {return(fit)}
+  if (f_se_fit == TRUE) {return(se_fit)} else {return(out)}
 }
 
 

@@ -448,7 +448,7 @@
       glance(fit_glm)
       f_plot_pred(fit_glm, part_unit, FALSE)
       
-      # predictive scores
+      # calculate predictive scores
         # on full training dataset
         scores_glm <- c(NA, NA)
         scores_glm <- out_best_stats[x1, c("dss_glm", "mse_glm")]
@@ -457,10 +457,13 @@
         scores_cv_glm <- c(NA, NA)
         scores_cv_glm <- out_best_stats[x1, c("dss_cv_glm", "mse_cv_glm")]
     
+      # calculate deviance F test p-value
+      f_test_glm <- anova(fit_glm, test = "F")[2, "Pr(>F)"]
       
   #...................................
   ## Explore plausible interactions and update GLM fit accordingly
-
+  if (gen_pars[gen_pars$parameter == "interactions_in", "value"] == TRUE) {  
+    
     # Identify any predictors involved in plausible two-way interactions
     int_vars <- subset(var_pars, is.na(interactions) == FALSE )[, c("variable", "interactions")]
 
@@ -560,11 +563,12 @@
 
       # calculate deviance F test p-value
       f_test_glm <- anova(fit_glm, test = "F")[2, "Pr(>F)"]
-      
+  }    
     
   #...................................  
   ## Evaluate mixed model option
     ### NOTE: COMPUTATIONALLY INTENSIVE, ESPECIALLY IF THE DATASET IS LARGE
+  if (gen_pars[gen_pars$parameter == "force_glm", "value"] != "glm") {  
     
     # Fit mixed model
     form <- as.formula( paste("n_died", "~", paste(vars_in, collapse="+"), "+ (1|", part_unit, ")", sep="")  )
@@ -606,8 +610,8 @@
       # loss of DSS/MSE from CV
       scores_cv_glmm["dss_cv_glmm"] - scores_glmm["dss_glmm"]
       scores_cv_glmm["mse_cv_glmm"] - scores_glmm["mse_glmm"]
-
-            
+  }          
+        
     # Select between fixed-effects only and mixed model and save fit statistics
       # if the choice should be based on relative MSE...
       if (force_glm == "either") {
@@ -628,7 +632,7 @@
         fit_best <- fit_glmm; 
         fit_best_stats <- c(AIC(fit_glmm), NA, scores_glmm, scores_cv_glmm)
       } 
-      
+          
   #...................................  
   ## Calculate robust standard errors (only if a fixed-effect model is selected)
   

@@ -125,7 +125,7 @@
         
         # read the dataset
         if (length(grep(".csv", x1)) > 0 ) {x2 <- read.csv(x1, header= TRUE)}
-        if (length(grep(".xls", x1)) > 0 ) {x2 <- read_excel(x1)}
+        if (length(grep(".xlsx", x1)) > 0 ) {x2 <- read_excel(x1)}
         
         # determine lowest levels of stratification
         x3 <- c()
@@ -219,11 +219,11 @@ for (i in scenarios[grepl("cf", scenarios)] ) {
                 FUN = "quantile", probs = cf_pop_s[j, "quantile"], na.rm=TRUE)
               colnames(x2) <- c("m", var)
 
-              # substitute values with counterfactual value(s)
+              # substitute values with counterfactual value(s), but rounded to integer
               x3 <- x1[x1[, cf_pop_s[j, "geo_ref"]] == k, c("tm", "m")]
               x3 <- merge(x3, x2, by = "m", all.x=TRUE)
               x3 <- x3[order(x3[, "tm"]), ]
-              x1[x1[, cf_pop_s[j, "geo_ref"]] == k, var] <- x3[, var]
+              x1[x1[, cf_pop_s[j, "geo_ref"]] == k, var] <- as.integer(x3[, var])
                 
             }
                 
@@ -233,7 +233,7 @@ for (i in scenarios[grepl("cf", scenarios)] ) {
               x2 <- quantile(x2, cf_pop_s[j, "quantile"], na.rm=TRUE)
               
               # substitute values with counterfactual value(s)
-              x1[x1[, cf_pop_s[j, "geo_ref"]] == k, var] <- x2
+              x1[x1[, cf_pop_s[j, "geo_ref"]] == k, var] <- as.integer(x2)
             }
           }
         }      
@@ -242,19 +242,59 @@ for (i in scenarios[grepl("cf", scenarios)] ) {
       if (is.na(cf_pop_s[j, "abs_value"]) == FALSE) {
         
         # substitute values with counterfactual value(s)
-        x1[, var]  <- cf_pop_s[j, "abs_value"]
+        x1[, var]  <- as.integer(cf_pop_s[j, "abs_value"])
       }
         
       # if a multiplying factor should be used...
       if (is.na(cf_pop_s[j, "rel_factor"]) == FALSE) {
           
         # substitute values with counterfactual value(s)
-        x1[, var]  <- x1[, var] * cf_pop_s[j, "rel_factor"]
+        x1[, var]  <- as.integer(x1[, var] * cf_pop_s[j, "rel_factor"])
       }
     
+      # if the counterfactual values need to be sourced from a dataset...
+      if (is.na(cf_pop_s[j, "dataset"]) == FALSE) {
+        
+        # file name
+        x1 <- paste(cf_pop_s[j, "dataset"])
+        
+        # read the dataset
+        if (length(grep(".csv", x1)) > 0 ) {x2 <- read.csv(x1, header= TRUE)}
+        if (length(grep(".xls", x1)) > 0 ) {x2 <- read_excel(x1)}
+        
+        # determine lowest levels of stratification
+        x3 <- c()
+          # time strata
+          x4 <- c()
+          if ("m" %in% colnames(x2) ) {x4 <- "m"}
+          if ("y" %in% colnames(x2) ) {x4 <- c(x4, "y")}
+          if ("tm" %in% colnames(x2) ) {x4 <- "tm"}
+          
+          # geo strata
+          x5 <- c()
+          if (length(grep(admin2_name, colnames(x2))) > 0 | length(grep("stratum", colnames(x2))) > 0 ) 
+            {x5 <- c(grep(admin2_name, colnames(x2), value = TRUE), grep("stratum", colnames(x2), value = TRUE) )}
+          if (length(grep(admin2_name, colnames(x2))) == 0 & length(grep("stratum", colnames(x2))) == 0 & 
+            (length(grep(admin1_name, colnames(x2))) > 0 | length(grep("admin1", colnames(x2))) > 0 ) ) 
+            {x5 <- c(grep(admin1_name, colnames(x2), value = TRUE), grep("admin1", colnames(x2), value = TRUE) )}
+        x3 <- c(x4, x5)
+
+        # prepare database for merging with time series
+          # identify counterfactual scenario value column and remove other unnecessary columns
+          x2 <- x2[, colnames(x2) %in% c(x3, gsub("cf_", "", scen))]
+          colnames(x2)[colnames(x2) == gsub("cf_", "", scen)] <- var
+
+          # rename columns in database to generic admin names
+          colnames(x2) <- sapply(colnames(x2), function(x) gsub(admin2_name, "stratum", x) )
+          colnames(x2) <- sapply(colnames(x2), function(x) gsub(admin1_name, "admin1", x) )
+          
+        # substitute dataset with counterfactual dataset
+        x1 <- x2
+      }
+      
     # re-assign modified dataset
     assign(cf_pop_s[j, "object"], x1)
-    
+  
     }
       
   #...................................
@@ -391,18 +431,18 @@ for (i in scenarios[! grepl("ex", scenarios)]) {
         
         # if the model is fixed-effects only...
         if (! part_unit %in% x3 ) { 
-          x1[, paste("log_cdr", j, "_", i, sep="")] <- f_predict(x2, get(paste("vcov_cl_cdr", j, sep = "")), x1, FALSE)
-          x1[, paste("log_cdr", j, "_se_", i, sep="")] <- f_predict(x2, get(paste("vcov_cl_cdr", j, sep = "")), x1, TRUE)
+          x1[, paste("log_cdr", j, "_", i, sep = "")] <- f_predict(x2, get(paste("vcov_cl_cdr", j, sep = "")), x1, FALSE)
+          x1[, paste("log_cdr", j, "_se_", i, sep = "")] <- f_predict(x2, get(paste("vcov_cl_cdr", j, sep = "")), x1, TRUE)
         }      
       
         # if the model has random effects...
         if (part_unit %in% x3 ) { 
           x1[, "wt"] <- 1
-          x1[, paste("log_cdr", j, "_", i, sep="")] <- NA
-          x1[, paste("log_cdr", j, "_se_", i, sep="")] <- NA
+          x1[, paste("log_cdr", j, "_", i, sep = "")] <- NA
+          x1[, paste("log_cdr", j, "_se_", i, sep = "")] <- NA
           x4 <- complete.cases(x1[, x3])
-          x1[x4, paste("log_cdr", j, "_", i, sep="")] <- predict(x2, newdata = x1[x4, ], allow.new.levels = TRUE)
-          x1[x4, paste("log_cdr", j, "_se_", i, sep="")] <- predict(x2, newdata = x1[x4, ], 
+          x1[x4, paste("log_cdr", j, "_", i, sep = "")] <- predict(x2, newdata = x1[x4, ], allow.new.levels = TRUE)
+          x1[x4, paste("log_cdr", j, "_se_", i, sep = "")] <- predict(x2, newdata = x1[x4, ], 
             allow.new.levels = TRUE, se.fit = TRUE)[2]
         }      
        
@@ -496,6 +536,7 @@ for (i in scenarios[! grepl("ex", scenarios)]) {
   ## Aggregate by stratum-month (i.e. no aggregation)
     # Output
     out <- f_est(scenarios, bootstrap_runs, c("stratum", "tm"), tm_analysis_start, tm_analysis_end)
+    out <- merge(out, t_units, by = "tm", all.x = TRUE)
     
     # Write output
     write.csv(out, paste(country, "_out_est_by_stratum_month.csv", sep = ""), row.names = FALSE, na = "")
@@ -739,22 +780,3 @@ for (i in scenarios[! grepl("ex", scenarios)]) {
 #...........................................................................................
 ### ENDS        
 
-      g<-rbind(d, c)    
-g <- as.data.frame(g)      
-
-
-for (i in scenarios) {g[, paste("toll_", i, sep = "")] <- paste(
-  g[, paste("toll_", i, "_est", sep = "")],
-  " (",
-  g[, paste("toll_", i, "_lci", sep = "")],  
-  " to ",
-  g[, paste("toll_", i, "_uci", sep = "")],  
-  ")",
-  sep = ""
-  )
-}      
- 
-g<-g[, -grep("_est", colnames(g))]
-g<-g[, -grep("_lci", colnames(g))]
-g<-g[, -grep("_uci", colnames(g))]
-write.csv(g, "bah2.csv", row.names = FALSE)

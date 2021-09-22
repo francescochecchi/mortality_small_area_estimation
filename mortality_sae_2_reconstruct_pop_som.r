@@ -52,7 +52,7 @@
   g <- (demog_pars[which(demog_pars$parameter == "assumed_cbr"), "value"] - 
     demog_pars[which(demog_pars$parameter == "assumed_cdr"), "value"] ) / (1000 * 12)
 
-  
+ 
 #..........................................................................................    
 ### Preparing IDP and refugee datasets
 #..........................................................................................
@@ -67,22 +67,17 @@
   ## PRMN dataset
     
     # Figure out time units
-    idp_prmn <- merge(idp_prmn, t_units, by=c("y", "m"))
-  
-    # Aggregate dataset, by reason for displacement (for descriptive analysis and counterfactual scenario)
-    idp_prmn_reason <- aggregate(idp_prmn[, "idps"], 
-      by = idp_prmn[, c("stratum_destination", "stratum_origin", "tm", "reason")], FUN = sum)
-    colnames(idp_prmn_reason) <- c("stratum", "stratum_origin", "tm", "reason", "idps")
-    
+    idp_prmn <- merge(idp_prmn, t_units, by = c("y", "m"))
+ 
     # Aggregate dataset, irrespective of reason for displacement
     idp_prmn <- aggregate(idp_prmn[, "idps"], by = idp_prmn[, c("stratum_destination", "stratum_origin", "tm")], FUN = sum)
-    colnames(idp_prmn) <- c("stratum", "stratum_origin", "tm", "idps")
+    colnames(idp_prmn) <- c("stratum_destination", "stratum_origin", "tm", "idps")
         
     # Reshape wide into a matrix
       # first expand so as to make sure that all combinations of districts and time points are featured
       x1 <- expand.grid(stratum_names_pop, stratum_names_pop, tm)
-      colnames(x1) <- c("stratum", "stratum_origin", "tm")
-      idp_matrix <- merge(x1, idp_prmn, by=c("stratum", "stratum_origin", "tm"), all.x = TRUE, sort = TRUE)
+      colnames(x1) <- c("stratum_destination", "stratum_origin", "tm")
+      idp_matrix <- merge(x1, idp_prmn, by = c("stratum_destination", "stratum_origin", "tm"), all.x = TRUE, sort = TRUE)
         # set all NA values to 0
         idp_matrix[is.na(idp_matrix)] <- 0
         
@@ -95,10 +90,10 @@
         x1 <- subset(x1, select = -tm)
         
         # sort
-        x1 <- x1[order(x1[, "stratum"], x1[, "stratum_origin"]), ]
+        x1 <- x1[order(x1[, "stratum_destination"], x1[, "stratum_origin"]), ]
         
         # reshape wide
-        x1 <- reshape(x1, idvar = "stratum", timevar = "stratum_origin", direction = "wide")
+        x1 <- reshape(x1, idvar = "stratum_destination", timevar = "stratum_origin", direction = "wide")
         colnames(x1)[2:ncol(x1)] <- substring(colnames(x1)[2:ncol(x1)], 6)
         
         # flip so that origin is rows, destination columns
@@ -118,13 +113,8 @@
       idp_matrix <- out
       rm(out)
       idp_matrix <- apply(idp_matrix, c(1,2), as.numeric)
-      
-#place2#       
-
-#place3#      
- 
-#place4#      
-
+#place2#
+#place3# 
   #.........................................
   ## Refugee dataset
     # Prepare data
@@ -153,7 +143,7 @@
       ref_flow_source[is.na(ref_flow_source)] <- 0
       ref_flow_source <- data.matrix(ref_flow_source)
 
-#place5#
+#place4#
 #..........................................................................................    
 ### Preparing population compartment and flow matrices
 #..........................................................................................
@@ -193,7 +183,7 @@
         flow[,,i] <- idp_matrix[(1 + length(stratum_names_pop) * (i-1)):(length(stratum_names_pop) * i), ]
       }
 
-
+#place5#
 
 #..........................................................................................    
 ### Estimating total population across the time series, for each alternative population source
@@ -275,89 +265,7 @@ for (i in 1:nrow(pop_sources)) {
       demog_pars[which(demog_pars$parameter == "u5_prop"), "value"] , digits = 0)
   
 
-  #.........................................
-  ## Graph population estimates
 
-    # Graph by admin1  
-      # add admin1
-      x1 <- merge(pop, strata, all = TRUE)
-    
-      # aggregate by admin1
-      x2 <- aggregate(x1[, pop_sources$pop_source], by = x1[, c("admin1", "tm")], sum)
-
-      # recalculate weighted average
-      pop_wts <- pop_sources$quality_score
-      x3 <- apply(x2[, 3:6], 1, function(x, pop_wts) {weighted.mean(x, pop_wts, na.rm = TRUE)} , pop_wts )
-      x2[, "pop_average"] <- x3
-      # reshape long
-      x3 <- melt(x2, id.vars = c("admin1", "tm"), variable.name = "pop_source", value.name = "pop")
-      
-      # add dates
-      x3 <- merge(x3, t_units, by ="tm")
-      x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))
-    
-      # graph
-      plot <- ggplot(x3, aes(x = date, y = pop, linetype = pop_source, colour = pop_source, size = pop_source)) + 
-        geom_line(alpha = 0.7) +
-        scale_x_date("year", date_labels = "%Y", breaks = "12 months", expand = c(0,0)) +
-        scale_y_continuous("population", labels = scales::comma) + 
-        theme_bw() + 
-        theme(axis.text = element_text(size = 9, colour = "grey20"), 
-          axis.title = element_text(size = 9, colour = "grey20"),
-          legend.title = element_text(size = 10),
-          legend.position = "bottom") +
-        scale_linetype_manual(name="Source:", values = c("solid", "solid", "solid", "solid", "solid"), 
-          labels=c("UNPESS (2014)", "AfriPop (2015)","WHO EPI (2018)", "WHO Polio (2018)", "weighted average") ) +
-        scale_size_manual(name = "Source:", values = c(1,1,1,1,2),
-          labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-        scale_colour_manual(name="Source:", values=c("maroon", "forestgreen", "royalblue4", "red1", "grey40"),
-          labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-        facet_wrap(~admin1, scales = "free", switch = "x", ncol = 4) +
-        theme(strip.placement = "outside",
-          strip.background = element_rect(fill = NA, colour = "grey50"),
-          panel.spacing = unit(0.2,"cm"), strip.text.y = element_text(angle = 0), 
-          strip.text = element_text(size = 9, colour = "grey20"))
-      
-      plot      
-      ggsave(paste(country, "_pop_trends_admin1.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
-
-    # Countrywide graph
-      # aggregate
-      x2 <- aggregate(x1[, pop_sources$pop_source], by = list("tm" = x1[, "tm"]), sum)
-      
-      # recalculate weighted average
-      pop_wts <- pop_sources$quality_score
-      x3 <- apply(x2[, 2:5], 1, function(x, pop_wts) {weighted.mean(x, pop_wts, na.rm = TRUE)} , pop_wts )
-      x2[, "pop_average"] <- x3
-      
-      # reshape long
-      x3 <- melt(x2, id.vars = c("tm"), variable.name = "pop_source", value.name = "pop")
-      
-      # add dates
-      x3 <- merge(x3, t_units, by = "tm")
-      x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))
-      
-      # graph
-      plot <- ggplot(x3, aes(x = date, y = pop, linetype = pop_source, colour = pop_source, size = pop_source)) + 
-      geom_line(alpha = 0.7) +
-      scale_x_date(date_labels = "%b %Y", breaks = "6 months", expand = c(0,0)) +
-      scale_y_continuous("population", breaks = seq(10000000, 16000000, by = 1000000), labels = scales::comma) + 
-      theme_bw() + coord_cartesian(ylim = c(10000000, 16000000)) +
-      theme(axis.text = element_text(size = 11, colour = "grey20"), 
-        axis.title = element_text(size = 11, colour = "grey20"),
-        legend.title = element_text(size = 11), 
-        legend.text = element_text(size = 11)) +
-      scale_linetype_manual(name = "Source:", values = c("solid", "solid", "solid", "solid", "solid"), 
-        labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-      scale_size_manual(name = "Source:", values = c(1,1,1,1,2),
-        labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-      scale_colour_manual(name = "Source:", values = c("maroon", "forestgreen", "royalblue4", "red1", "grey40"),
-        labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average"))
-      
-      plot
-      ggsave(paste(country, "_pop_trends_country.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
-
- 
 #..........................................................................................    
 ### Computing IDP proportions and departures, based on UNPESS (baseline) and PRMN figures
 #..........................................................................................
@@ -431,22 +339,140 @@ for (i in 1:nrow(pop_sources)) {
       prop_idp_in_all[, "prop_idp_average"] <- ifelse(is.nan(prop_idp_in_all[, "prop_idp_average"]), NA, 
         prop_idp_in_all[, "prop_idp_average"])
   
-     
+      
+  #.........................................
+  ## Number of new IDPs per time unit, by stratum of origin, based on PRMN figures
+    # Aggregate
+    idp_lv <- aggregate(idp_prmn[, "idps"], by = idp_prmn[, c("stratum_origin", "tm")], FUN = sum )
+    colnames(idp_lv) <- c("stratum", "tm", "idp_lv")
+    
+    # Merge with overall time series
+    idp_lv <- merge(ts, idp_lv, by=c("stratum", "tm"), all = TRUE, sort = TRUE)
+    
+    # Restrict date range to that available
+    idp_lv <- subset(idp_lv, y > 2015)
+    
+    # Assume that if IDP = NA, it means zero
+    idp_lv[, "idp_lv"] <- ifelse(is.na(idp_lv[, "idp_lv"]) == TRUE, 0, idp_lv[, "idp_lv"]  )
+#place6#    
+#place7# 
+#..........................................................................................    
+### Writing output and generating graphs
+#..........................................................................................
+
+  #.........................................
+  ## Merge IDP proportions, IDPs leaving and population estimates
+  pop <- merge(pop, prop_idp_in_all, by = c("stratum", "tm"), all = TRUE, sort = TRUE)
+  pop <- merge(pop, idp_lv, by = c("stratum", "tm"), all = TRUE, sort = TRUE)
+  
+  #.........................................
+  ## Compute IDP proportion
+  colnames(pop)[colnames(pop) == "prop_idp_average"] <- "prop_idp"
+
+  #.........................................
+  ## Compute IDP flow rates
+          
+    # Departure rate
+    pop[, "dep_rate"] <- pop[, "idp_lv"] * 10000 / pop[, "pop_average"]
+
+    
+  #.........................................
+  ## Write population estimates
+  pop <- pop[, ! colnames(pop) %in% c("admin1", "m", "y")]
+  pop <- merge(pop, strata, by = "stratum", all.x = TRUE)
+  pop <- merge(pop, t_units, by = "tm", all.x = TRUE)
+    
+  x1 <- c("stratum", "admin1", "tm", "y", "m", paste(pop_sources$pop_source), grep("average", colnames(pop), value = TRUE), 
+    "prop_idp", grep("rate", colnames(pop), value = TRUE) )
+#place8#  
+  write.csv(pop[,  x1], paste(country, "_pop_denoms.csv", sep=""), row.names=FALSE)
+    
+  #.........................................
+  ## Graph population estimates
+
+    # Graph by admin1  
+      x1 <- pop
+    
+      # aggregate by admin1
+      x2 <- aggregate(x1[, pop_sources$pop_source], by = x1[, c("admin1", "tm")], sum)
+
+      # recalculate weighted average
+      pop_wts <- pop_sources$quality_score
+      x3 <- apply(x2[, 3:6], 1, function(x, pop_wts) {weighted.mean(x, pop_wts, na.rm = TRUE)} , pop_wts )
+      x2[, "pop_average"] <- x3
+      # reshape long
+      x3 <- melt(x2, id.vars = c("admin1", "tm"), variable.name = "pop_source", value.name = "pop")
+      
+      # add dates
+      x3 <- merge(x3, t_units, by ="tm")
+      x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))
+    
+      # graph
+      plot <- ggplot(x3, aes(x = date, y = pop, linetype = pop_source, colour = pop_source, size = pop_source)) + 
+        geom_line(alpha = 0.7) +
+        scale_x_date("year", date_labels = "%Y", breaks = "12 months", expand = c(0,0)) +
+        scale_y_continuous("population", labels = scales::comma) + 
+        theme_bw() + 
+        theme(axis.text = element_text(size = 9, colour = "grey20"), 
+          axis.title = element_text(size = 9, colour = "grey20"),
+          legend.title = element_text(size = 10),
+          legend.position = "bottom") +
+        scale_linetype_manual(name="Source:", values = c("solid", "solid", "solid", "solid", "solid"), 
+          labels=c("UNPESS (2014)", "AfriPop (2015)","WHO EPI (2018)", "WHO Polio (2018)", "weighted average") ) +
+        scale_size_manual(name = "Source:", values = c(1,1,1,1,2),
+          labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
+        scale_colour_manual(name="Source:", values=c("maroon", "forestgreen", "royalblue4", "red1", "grey40"),
+          labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
+        facet_wrap(~admin1, scales = "free", switch = "x", ncol = 4) +
+        theme(strip.placement = "outside",
+          strip.background = element_rect(fill = NA, colour = "grey50"),
+          panel.spacing = unit(0.2,"cm"), strip.text.y = element_text(angle = 0), 
+          strip.text = element_text(size = 9, colour = "grey20"))
+      
+      plot      
+      ggsave(paste(country, "_pop_trends_admin1.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
+
+    # Countrywide graph
+      # aggregate
+      x2 <- aggregate(x1[, pop_sources$pop_source], by = list("tm" = x1[, "tm"]), sum)
+      
+      # reshape long
+      x3 <- melt(x2, id.vars = c("tm"), variable.name = "pop_source", value.name = "pop")
+      
+      # add dates
+      x3 <- merge(x3, t_units, by = "tm")
+      x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))
+      
+      # graph
+      plot <- ggplot(x3, aes(x = date, y = pop, linetype = pop_source, colour = pop_source, size = pop_source)) + 
+      geom_line(alpha = 0.7) +
+      scale_x_date(date_labels = "%b %Y", breaks = "6 months", expand = c(0,0)) +
+      scale_y_continuous("population", breaks = seq(10000000, 16000000, by = 1000000), labels = scales::comma) + 
+      theme_bw() + coord_cartesian(ylim = c(10000000, 16000000)) +
+      theme(axis.text = element_text(size = 11, colour = "grey20"), 
+        axis.title = element_text(size = 11, colour = "grey20"),
+        legend.title = element_text(size = 11), 
+        legend.text = element_text(size = 11)) +
+      scale_linetype_manual(name = "Source:", values = c("solid", "solid", "solid", "solid", "solid"), 
+        labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
+      scale_size_manual(name = "Source:", values = c(1,1,1,1,2),
+        labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
+      scale_colour_manual(name = "Source:", values = c("maroon", "forestgreen", "royalblue4", "red1", "grey40"),
+        labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average"))
+      
+      plot
+      ggsave(paste(country, "_pop_trends_country.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
+
+    
   #.........................................
   ## Graph IDP proportions (only average)
-    # Reshape long
-    x1 <- melt(prop_idp_in_all, id.vars=c("stratum", "tm"), variable.name = "pop_source", value.name = "prop_idp")
-    
-    # Select only averages
-    x1 <- subset(x1, pop_source == "prop_idp_average")
-    
-    # Add admin1
-    x1 <- merge(x1, strata, all = TRUE)
-    x1 <- as.data.frame(x1)
-    
+
     # Graph by admin1
+      x1 <- pop
+      
       # aggregate by admin1
       x2 <- aggregate(x1[, "prop_idp"], by = x1[, c("admin1", "tm")], mean)
+      colnames(x2)[3] <- "prop_idp"
       x2 <- merge(x2, t_units, by = "tm")
       x2[, "date"] <- as.Date.character(paste(x2[, "y"], x2[, "m"], "01", sep = "-"))
       
@@ -468,12 +494,12 @@ for (i in 1:nrow(pop_sources)) {
           strip.text = element_text(size = 9, colour = "grey20"))
       
       plot      
-      ggsave(paste(country, "_idp_trends_admin0.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
-    
+      ggsave(paste(country, "_idp_trends_admin1.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
     
     # countrywide graph
       # aggregate by country
       x3 <- aggregate(x1[, "prop_idp"], by = list("tm" = x1[, "tm"]), mean)
+      colnames(x3)[2] <- "prop_idp"
       x3 <- merge(x3, t_units, by = "tm")
       x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))    
       
@@ -491,53 +517,7 @@ for (i in 1:nrow(pop_sources)) {
       
       plot
       ggsave(paste(country, "_idp_trends_country.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
-
-  #.........................................
-  ## Number of new IDPs per time unit, by stratum of origin, based on PRMN figures
-    # Aggregate
-    idp_lv <- aggregate(idp_prmn[, "idps"], by = idp_prmn[, c("stratum_origin", "tm")], FUN = sum )
-    colnames(idp_lv) <- c("stratum", "tm", "idp_lv")
     
-    # Merge with overall time series
-    idp_lv <- merge(ts, idp_lv, by=c("stratum", "tm"), all = TRUE, sort = TRUE)
-    
-    # Restrict date range to that available
-    idp_lv <- subset(idp_lv, y > 2015)
-    
-    # Assume that if IDP = NA, it means zero
-    idp_lv[, "idp_lv"] <- ifelse(is.na(idp_lv[, "idp_lv"]) == TRUE, 0, idp_lv[, "idp_lv"]  )
-    
-
-#..........................................................................................    
-### Writing output
-#..........................................................................................
-
-  #.........................................
-  ## Merge IDP proportions, IDPs leaving and population estimates
-  pop <- merge(pop, prop_idp_in_all, by = c("stratum", "tm"), all = TRUE, sort = TRUE)
-  pop <- merge(pop, idp_lv, by = c("stratum", "tm"), all = TRUE, sort = TRUE)
-  
-  #.........................................
-  ## Compute IDP proportion
-  colnames(pop)[colnames(pop) == "prop_idp_average"] <- "prop_idp"
-
-  #.........................................
-  ## Compute IDP flow rates
-          
-    # Departure rate
-    pop[, "dep_rate"] <- pop[, "idp_lv"] * 10000 / pop[, "pop_average"]
-      
-  #.........................................
-  ## Write population estimates
-  pop <- pop[, ! colnames(pop) %in% c("admin1", "m", "y")]
-  pop <- merge(pop, strata, by = "stratum", all.x = TRUE)
-  pop <- merge(pop, t_units, by = "tm", all.x = TRUE)
-    
-  x1 <- c("stratum", "admin1", "tm", "y", "m", paste(pop_sources$pop_source), grep("average", colnames(pop), value = TRUE), 
-    "prop_idp", grep("rate", colnames(pop), value = TRUE) )
-#place8#  
-  write.csv(pop[,  x1], paste(country, "_pop_denoms.csv", sep=""), row.names=FALSE)
-  
   
 #.........................................................................................
 ### ENDS

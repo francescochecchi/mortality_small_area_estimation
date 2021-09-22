@@ -192,7 +192,7 @@ source("mortality_sae_0_functions.R", echo = TRUE)
       pop_sources <- read_excel(filename, sheet = "data_table")
         #get rid of tibble
         pop_sources <- data.frame(pop_sources)
-        # exclude any predictors that are not going to be used for analysis
+        # exclude any datasets that are not going to be used for analysis
         pop_sources <- subset(pop_sources, used_in_analysis == "Y" )
 
       # ...also read variable dictionary which contains variable on whether any variable is to be read (used in analysis)
