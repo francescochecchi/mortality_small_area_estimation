@@ -417,13 +417,13 @@ for (i in 1:nrow(pop_sources)) {
           axis.title = element_text(size = 9, colour = "grey20"),
           legend.title = element_text(size = 10),
           legend.position = "bottom") +
-        scale_linetype_manual(name="Source:", values = c("solid", "solid", "solid", "solid", "solid"), 
+        scale_linetype_manual(name="Source:", values = c("solid", "solid", "solid", "solid", "41"), 
           labels=c("UNPESS (2014)", "AfriPop (2015)","WHO EPI (2018)", "WHO Polio (2018)", "weighted average") ) +
-        scale_size_manual(name = "Source:", values = c(1,1,1,1,2),
+        scale_size_manual(name = "Source:", values = c(1, 1, 1, 1, 2),
           labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-        scale_colour_manual(name="Source:", values=c("maroon", "forestgreen", "royalblue4", "red1", "grey40"),
+        scale_colour_manual(name="Source:", values = c(palette_cb[c(6, 4, 7, 8)], "grey20"),
           labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-        facet_wrap(~admin1, scales = "free", switch = "x", ncol = 4) +
+        facet_wrap(~admin1, scales = "free", strip.position = "top", ncol = 3) +
         theme(strip.placement = "outside",
           strip.background = element_rect(fill = NA, colour = "grey50"),
           panel.spacing = unit(0.2,"cm"), strip.text.y = element_text(angle = 0), 
@@ -434,17 +434,15 @@ for (i in 1:nrow(pop_sources)) {
 
     # Countrywide graph
       # aggregate
-      x2 <- aggregate(x1[, pop_sources$pop_source], by = list("tm" = x1[, "tm"]), sum)
-      
-      # reshape long
-      x3 <- melt(x2, id.vars = c("tm"), variable.name = "pop_source", value.name = "pop")
+      x2 <- aggregate(x3[, "pop"], by = x3[, c("pop_source", "tm")], sum, na.rm = TRUE)
+      colnames(x2) <- c("pop_source", "tm", "pop")
       
       # add dates
-      x3 <- merge(x3, t_units, by = "tm")
-      x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))
+      x2 <- merge(x2, t_units, by = "tm")
+      x2[, "date"] <- as.Date.character(paste(x2[, "y"], x2[, "m"], "01", sep = "-"))
       
       # graph
-      plot <- ggplot(x3, aes(x = date, y = pop, linetype = pop_source, colour = pop_source, size = pop_source)) + 
+      plot <- ggplot(x2, aes(x = date, y = pop, linetype = pop_source, colour = pop_source, size = pop_source)) + 
       geom_line(alpha = 0.7) +
       scale_x_date(date_labels = "%b %Y", breaks = "6 months", expand = c(0,0)) +
       scale_y_continuous("population", breaks = seq(10000000, 16000000, by = 1000000), labels = scales::comma) + 
@@ -453,15 +451,15 @@ for (i in 1:nrow(pop_sources)) {
         axis.title = element_text(size = 11, colour = "grey20"),
         legend.title = element_text(size = 11), 
         legend.text = element_text(size = 11)) +
-      scale_linetype_manual(name = "Source:", values = c("solid", "solid", "solid", "solid", "solid"), 
+      scale_linetype_manual(name = "Source:", values = c("solid", "solid", "solid", "solid", "41"), 
         labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-      scale_size_manual(name = "Source:", values = c(1,1,1,1,2),
+      scale_size_manual(name = "Source:", values = c(1, 1, 1, 1, 2),
         labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average")) +
-      scale_colour_manual(name = "Source:", values = c("maroon", "forestgreen", "royalblue4", "red1", "grey40"),
+      scale_colour_manual(name = "Source:", values = c(palette_cb[c(6, 4, 7, 8)], "grey20"),
         labels = c("UNPESS (2014)", "AfriPop (2015)", "WHO EPI (2018)", "WHO Polio (2018)", "weighted average"))
       
       plot
-      ggsave(paste(country, "_pop_trends_country.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
+      ggsave(paste(country, "_pop_trends_country.png", sep = ""), height = 15, width = 30, units = "cm", dpi = "print")
 
     
   #.........................................
@@ -478,7 +476,7 @@ for (i in 1:nrow(pop_sources)) {
       
       # graph
       plot <- ggplot(x2, aes(x = date, y = prop_idp)) + 
-        geom_bar(stat = "identity", fill = "orangered3", alpha = 0.5) +
+        geom_bar(stat = "identity", fill = palette_cb[7], alpha = 0.7) +
         scale_x_date("year", limits = c(as.Date("2016-01-01"), as.Date("2018-12-01")), date_labels = "%Y", 
            breaks = "12 months", expand = c(0,0)) +
         scale_y_continuous("proportion of IDPs and returnees", labels = scales::percent) + 
@@ -487,7 +485,7 @@ for (i in 1:nrow(pop_sources)) {
         theme(axis.text = element_text(size = 9, colour = "grey20"), 
           axis.title = element_text(size = 10, colour = "grey20"),
           legend.position="none") +
-        facet_wrap(~admin1, scales = "free", switch = "x", ncol = 4) +
+        facet_wrap(~admin1, scales = "free", strip.position = "top", ncol = 3) +
         theme(strip.placement = "outside",
           strip.background = element_rect(fill = NA, colour = "grey50"),
           panel.spacing = unit(0.2,"cm"), strip.text.y = element_text(angle = 0), 
@@ -501,22 +499,23 @@ for (i in 1:nrow(pop_sources)) {
       x3 <- aggregate(x1[, "prop_idp"], by = list("tm" = x1[, "tm"]), mean)
       colnames(x3)[2] <- "prop_idp"
       x3 <- merge(x3, t_units, by = "tm")
-      x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))    
+      x3[, "date"] <- as.Date.character(paste(x3[, "y"], x3[, "m"], "01", sep = "-"))
       
       # graph
       plot <- ggplot(x3, aes(x = date, y = prop_idp)) + 
-        geom_bar(stat = "identity", fill = "orangered3", alpha = 0.5) +
+        geom_bar(stat = "identity", fill = palette_cb[7], alpha = 0.7) +
         scale_x_date(limits = c(as.Date("2016-01-01"), as.Date("2018-12-01")), date_labels = "%b %Y", 
-          breaks = "6 months", expand = c(0,0)) +
-        scale_y_continuous("proportion of IDPs and returnees", labels = scales::percent) +
+          breaks = "6 months", expand = c(0, 0)) +
+        scale_y_continuous("proportion of IDPs and returnees", labels = scales::percent, expand = c(0, NA),
+          breaks = seq(0, 0.2, 0.05), limits = c(0, 0.2)) +
         theme_bw() + 
-        coord_cartesian(ylim = c(0, 0.3)) + theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm") ) +
+        theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm") ) +
         theme(axis.text = element_text(size = 11, colour = "grey20"), 
           axis.title = element_text(size = 11, colour = "grey20"),
           legend.title = element_text(size = 10))
       
       plot
-      ggsave(paste(country, "_idp_trends_country.png", sep = ""), height = 28, width = 22, units = "cm", dpi = "print")
+      ggsave(paste(country, "_idp_trends_country.png", sep = ""), height = 15, width = 30, units = "cm", dpi = "print")
     
   
 #.........................................................................................

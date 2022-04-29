@@ -618,16 +618,16 @@ for (i in scenarios[! grepl("ex", scenarios)]) {
     
       # evolution of actual and counterfactual death rate - all ages
       plot_cdr <- ggplot(out, aes(x = date) ) +
-        geom_point(aes(y = cdr_ac_est), colour = "indianred3", size = 2, alpha = 0.5) +
-        geom_line(aes(y = cdr_ac_est), colour = "indianred3", size = 1, alpha = 0.5) +
+        geom_point(aes(y = cdr_ac_est), colour = palette_cb[7], size = 2, alpha = 0.5) +
+        geom_line(aes(y = cdr_ac_est), colour = palette_cb[7], size = 1, alpha = 0.5) +
         geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_ac_lci"]), ymax = as.numeric(out[, "cdr_ac_uci"] )), 
-          fill = "indianred3", alpha = 0.3) +
-        geom_line(aes(y = cdr_cf_likely_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "longdash") +
-        geom_line(aes(y = cdr_cf_best_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
-        geom_line(aes(y = cdr_cf_worst_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
+          fill = palette_cb[7], alpha = 0.3) +
+        geom_line(aes(y = cdr_cf_likely_est), colour = palette_cb[4], alpha = 0.5, 
+          size = 1.25) +
+        geom_line(aes(y = cdr_cf_best_est), colour = palette_cb[4], alpha = 0.5, 
+          size = 1, linetype = "41") +
+        geom_line(aes(y = cdr_cf_worst_est), colour = palette_cb[4], alpha = 0.5, 
+          size = 1, linetype = "41") +
         theme_bw() + 
         theme(plot.margin = unit(c(1, 0, 0, 0.5), "cm") ) +
         scale_x_date("", date_labels = "%b %Y", breaks = "6 months", expand=c(0,0)) +
@@ -640,16 +640,16 @@ for (i in scenarios[! grepl("ex", scenarios)]) {
 
       # evolution of actual and counterfactual death rate - children under 5y
       plot_cdr_u5 <- ggplot(out, aes(x = date) ) +
-        geom_point(aes(y = cdr_u5_ac_est), colour = "indianred3", size = 2, alpha = 0.5) +
-        geom_line(aes(y = cdr_u5_ac_est), colour = "indianred3", size = 1, alpha = 0.5) +
+        geom_point(aes(y = cdr_u5_ac_est), colour = palette_cb[7], size = 2, alpha = 0.5) +
+        geom_line(aes(y = cdr_u5_ac_est), colour = palette_cb[7], size = 1, alpha = 0.5) +
         geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_u5_ac_lci"]), ymax = as.numeric(out[, "cdr_u5_ac_uci"] )), 
-          fill = "indianred3", alpha = 0.3) +
-        geom_line(aes(y = cdr_u5_cf_likely_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "longdash") +
-        geom_line(aes(y = cdr_u5_cf_best_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
-        geom_line(aes(y = cdr_u5_cf_worst_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
+          fill = palette_cb[7], alpha = 0.3) +
+        geom_line(aes(y = cdr_u5_cf_likely_est), colour = palette_cb[4], alpha = 0.5, 
+          size = 1.25) +
+        geom_line(aes(y = cdr_u5_cf_best_est), colour = palette_cb[4], alpha = 0.5, 
+          size = 1, linetype = "41") +
+        geom_line(aes(y = cdr_u5_cf_worst_est), colour = palette_cb[4], alpha = 0.5, 
+          size = 1, linetype = "41") +
         theme_bw() + 
         theme(plot.margin = unit(c(1, 0, 0, 0.5), "cm") ) +
         scale_x_date("", date_labels = "%b %Y", breaks = "6 months", expand = c(0,0)) +
