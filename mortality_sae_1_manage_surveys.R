@@ -896,7 +896,7 @@ for (i in 1:nrow(surveys) ) {
   x_labels_m[seq(1, length(x_labels_m), by=2)] <- ""
   x_labels_y <- unique(ts[, c("tm", "y")])[, "y"]
   
-  plot <- ggplot(subset(hh_data_avail, y >= y_analysis_start), aes(x = tm, y = stratum) )
+  plot <- ggplot(subset(hh_data_avail, y >= y_excess_start), aes(x = tm, y = stratum) )
   plot <- plot + geom_tile(aes(fill=data_availability), colour = "grey80", show.legend = FALSE) + 
     scale_x_continuous("month, year", expand=c(0,0), breaks = unique(ts[, c("tm", "m")])[, "tm"], labels = x_labels_m ) + 
     scale_y_discrete(admin2_name, expand=c(0,0) ) + 
@@ -931,14 +931,11 @@ for (i in 1:nrow(surveys) ) {
   
   #...................................   
   ## Histogram of survey quality score  
-  plot <- ggplot(subset(surveys, exclude == "N"), aes(x = quality_score)) + 
-    geom_histogram(fill = palette_cb[3], colour = palette_cb[6] , alpha = 0.5) + 
-    theme_bw() +
-    labs(x = "survey quality score", y = "number of surveys") +
-    theme(axis.title = element_text(colour= "grey20", size = 10)) +
-    theme(axis.text = element_text(colour= "grey20", size = 10))
+  plot <- ggplot(subset(surveys, exclude == "N"), aes(x = quality_score))
+  plot <- plot + geom_histogram(fill = palette_cb[3], colour = palette_cb[6] , alpha = 0.5) + theme_bw() +
+    labs(x = "survey quality score", y = "number of surveys")
   plot
-  ggsave(paste(country, "_svy_quality.png", sep=""), height = 12, width = 20, units = "cm", dpi = "print")
+  ggsave(paste(country, "_svy_quality.png", sep=""), height = 10, width = 15, units = "cm", dpi = "print")
 
   
   #...................................  
@@ -988,7 +985,7 @@ for (i in 1:nrow(surveys) ) {
       for (i in 1:length(indicators) )  {
        x2 <- subset(x1, y %in% c(y_analysis_start:y_analysis_end) )[, c("y", "m", "date_recall", "survey_id", "admin1", indicators[i])]
        colnames(x2)[colnames(x2) == indicators[i]] <- "var" 
-       plot <- ggplot(subset(x2, y >= y_analysis_start), aes(x = date_recall, y = var, group = survey_id) )
+       plot <- ggplot(subset(x2, y >= y_excess_start), aes(x = date_recall, y = var, group = survey_id) )
        plot <- plot + geom_point( aes(color = admin1) ) + geom_line( aes(color = admin1) ) + 
          theme_bw() + theme(plot.margin = unit(c(0.5, 0.5, 1, 0.5), "cm") ) +
          labs(x = "\nmonth", y = names(indicators[i]) ) +
