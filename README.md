@@ -97,3 +97,11 @@ Notes:
 
 Note: **Very computationally intensive** if > 10 sets of sensitivity values are investigated. May require increasing memory allocation or running in parallel on a computer cluster. Suggest attempting this step with a minimal range of sensitivity values first.
 
+
+#### :ballot_box_with_check: `mortality_sae_7_additional_analyses_nga.R`
+
+| Sub-steps implemented | Required data inputs | Outputs |
+| --------------------- | -------------------- | ------- |
+| - additional analyses and visualisations presented in the paper - not required to generate the main results | - need to run all other scripts first | See paper. |
+
+
