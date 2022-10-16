@@ -25,6 +25,7 @@ Datasets/parameter files and R script files must be stored on the same folder, w
 *	`[xxx]_demog_data.xlsx`: while script 2 (population reconstruction) as mentioned below will need to be developed for each crisis, maintaining the same data input structure as shown in the sample dataset is recommended to avoid script execution problems; generally this will include a table of all population and displacement datasets used, a worksheet with specific demographic parameters (e.g. birth rate), and the datasets themselves;
 *	`[xxx]_analysis_parameters.xlsx`: this is the main file enabling the user to interact with the analysis, and consists of a <general_parameters> worksheet (needed for all scripts) where various parameters needed across the analysis are declared; a <predictor_parameters> worksheet (scripts 4-6) wherein all variables to be considered in model fitting should be listed, with options to force their inclusion or exclusion, retain specific lags, categorise them, consider them in interaction terms, etc.; a <counterfactual_parameters> worksheet (scripts 5-6) where best, worst and most likely scenario values for both predictors and population input datasets are declared, so as to create corresponding counterfactual scenarios; and a <sensitivity_parameters> worksheet (script 6) where the user can specify sensitivity ranges for specific datasets (identified by their R object name).
 *	Any additional datasets (.csv) that specify counterfactual values to be used for a given predictor or demographic dataset. For the Nigeria analysis, `nga_maize_counterfactuals.csv` and `nga_vaccination_coverage_counterfactuals.csv` are included in this repository, as are .zip files containing source data and code to create these counterfactual datasets (respectively, `manage_food_prices.zip` and `manage_vaccination_coverage.zip`). Note that this is not the only way to specify counterfactuals (see related tab of `[xxx]_analysis_parameters.xslx`).
+* `mapping.zip`: unzip to the same directory. Only needed for creating maps of certain variables after the main analysis completes. Needed for `mortality_sae_7_additional_analyses_nga.R` script.
 
 Generally, dictionaries within each file are not just informational, but also determine which specific variables within each worksheet are read by the scripts. As such, they should be modified with care, and any additional variable or parameter added to any worksheet should be reflected within the corresponding dictionary.
 
@@ -102,6 +103,6 @@ Note: **Very computationally intensive** if > 10 sets of sensitivity values are 
 
 | Sub-steps implemented | Required data inputs | Outputs |
 | --------------------- | -------------------- | ------- |
-| - additional analyses and visualisations presented in the paper - not required to generate the main results | - need to run all other scripts first | See paper. |
+| - additional analyses and visualisations presented in the paper - not required to generate the main results | - need to run all other scripts first; <br> '`mapping` sub-directory unzipped to the same directory (see above) | See paper. |
 
 
