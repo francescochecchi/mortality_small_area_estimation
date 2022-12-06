@@ -7,6 +7,8 @@ London School of Hygiene and Tropical Medicine
 
 Funding support: United States Institute of Peace, UK Foreign Commonwealth and Development Office, UK Research and Innovation
 
+Checchi et al. (2022) https://pophealthmetrics.biomedcentral.com/articles/10.1186/s12963-022-00283-6 
+
 # Explanation of R analysis scripts and input data files
 
 ## Background
