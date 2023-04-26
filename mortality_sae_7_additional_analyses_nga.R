@@ -389,8 +389,92 @@
     height = 15, width = 15, units = "cm", dpi = 300)     
 
   
-  
+#...........................................................................................
+### Evolution of displacement and insecurity at the crisis-wide level
+#...........................................................................................
 
+  #...................................
+  ## Prepare data on incident conflict-related displacements across Nigeria
+  out1 <- data.frame("year" = 2009:2019, 
+    "new_idps" = c(5000, 5000, 65000, 63000, 471000, 975000, 737000, 501000, 279000, 541000, 248000)
+    )
+    # from https://data.humdata.org/dataset/idmc-idp-data-for-nigeria 
+    
+    # Create date
+    out1[, "date"] <- ymd(paste(out1[, "year"], 6, 15, sep = "-"))
+
+  
+  #...................................
+  ## Prepare yearly totals of people killed from the different databases available
+    # Output dataframe
+    out2 <- data.frame()
+  
+    # ACLED
+    x1 <- aggregate(conflict_acled$acled_fatalities, by = list(conflict_acled$y), 
+      FUN = sum, na.rm = TRUE)    
+    colnames(x1) <- c("year", "n_killed")
+    x1[, "source"] <- "Armed Conflict Location & Event Data"
+    out2 <- rbind(out2, x1)
+    
+    # CFR
+    x1 <- aggregate(conflict_cfr$cfr_killed, by = list(conflict_cfr$y), 
+      FUN = sum, na.rm = TRUE)    
+    colnames(x1) <- c("year", "n_killed")
+    x1[, "source"] <- "Nigeria Security Tracker"
+    out2 <- rbind(out2, x1)
+        
+    # GTD
+    x1 <- aggregate(conflict_gtd$gtd_killed, by = list(conflict_gtd$y), 
+      FUN = sum, na.rm = TRUE)    
+    colnames(x1) <- c("year", "n_killed")
+    x1[, "source"] <- "Global Terrorism Database"
+    out2 <- rbind(out2, x1)
+    
+    # Nigeria Watch
+    x1 <- aggregate(conflict_nwc$nwc_killed, by = list(conflict_nwc$y), 
+      FUN = sum, na.rm = TRUE)    
+    colnames(x1) <- c("year", "n_killed")
+    x1[, "source"] <- "Nigeria Watch"
+    out2 <- rbind(out2, x1)
+    
+    # Create date
+    out2[, "date"] <- ymd(paste(out2[, "year"], 6, 15, sep = "-"))
+    
+
+  #...................................
+  ## Graph and save
+    # IDPs
+    plot1 <- ggplot(subset(out1, year %in% 2003:2019), aes(x = date, y = new_idps) ) +
+      geom_bar(stat = "identity", fill = palette_cb[3], alpha = 0.5) +
+      theme_bw() +
+      scale_y_continuous("new IDPs per year", labels = scales::comma) +
+      scale_x_date("", minor_breaks = NULL, breaks = "1 year", date_labels = "%Y", 
+        expand = c(0, 0)) +
+      theme(axis.title = element_text(size = 10, colour = "grey20"))
+    plot1
+        
+    # People killed 
+    plot2 <- ggplot(subset(out2, year %in% 2003:2019), aes(x = date, y = n_killed, group = source, colour = source)) +
+      geom_step(lwd = 1, alpha = 0.8) +
+      theme_bw() +
+      facet_wrap(source ~.) +
+      scale_colour_manual(values = palette_cb[c(4, 6, 7, 8)]) +
+      scale_y_continuous("people killed per year", labels = scales::comma) +
+      scale_x_date("", minor_breaks = "1 year", breaks = "2 year", date_labels = "%Y", 
+        expand = c(0, 0)) +
+      theme(axis.title = element_text(size = 10, colour = "grey20")) +
+      theme(legend.position = "none")
+      
+    plot2
+    
+    # Combine plots and save
+    plot <- ggarrange(plot1, plot2, nrow = 2, heights = c(1, 2))
+    plot
+    ggsave(paste(country, "_trends_idps_n_killed.png", sep = ""), height = 15, width = 20, 
+      units = "cm", dpi = "print")  
+    
+    
+    
 #...........................................................................................
 ### ENDS
 #...........................................................................................
