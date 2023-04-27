@@ -896,16 +896,15 @@ for (i in 1:nrow(surveys) ) {
   x_labels_m[seq(1, length(x_labels_m), by=2)] <- ""
   x_labels_y <- unique(ts[, c("tm", "y")])[, "y"]
   
-  plot <- ggplot(subset(hh_data_avail, y >= y_excess_start), aes(x = tm, y = stratum) )
-  plot <- plot + geom_tile(aes(fill=data_availability), colour = "grey80", show.legend = FALSE) + 
-    scale_x_continuous("month, year", expand=c(0,0), breaks = unique(ts[, c("tm", "m")])[, "tm"], labels = x_labels_m ) + 
-    scale_y_discrete(admin2_name, expand=c(0,0) ) + 
-    scale_fill_gradientn(colours = c("grey90", "yellow", "red"), 
-                         values = c(0, 0.0000001, 1 )) +
-    facet_grid(admin1 ~ y, space="free", scales="free", switch="x") +
+  plot <- ggplot(subset(hh_data_avail, y >= y_excess_start), aes(x = tm, y = stratum) ) +
+    geom_tile(aes(fill=data_availability), colour = "grey80", show.legend = TRUE) + 
+    scale_x_continuous("month, year", expand = c(0,0), breaks = unique(ts[, c("tm", "m")])[, "tm"], labels = x_labels_m ) + 
+    scale_y_discrete(admin2_name, expand = c(0,0) ) + 
+    scale_fill_gradientn("data availability", colours = c("grey90", palette_cb[5], palette_cb[7]), values = c(0, 0.0000001, 1 )) +
+    facet_grid(admin1 ~ y, space = "free", scales = "free", switch="x") +
     theme_bw() +
-    theme(strip.placement = "outside",
-          strip.background = element_rect(fill=NA, colour="grey50"),
+    theme(legend.position = "top", strip.placement = "outside",
+          strip.background = element_rect(fill = NA, colour = "grey50"),
           panel.spacing=unit(0,"cm"), strip.text.y = element_text(angle = 0))
   
   plot

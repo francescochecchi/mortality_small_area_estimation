@@ -577,55 +577,59 @@ for (i in scenarios[! grepl("ex", scenarios)]) {
     
       # evolution of actual and counterfactual death rate - all ages
       plot_cdr <- ggplot(out, aes(x = date) ) +
-        geom_point(aes(y = cdr_ac_est), colour = "indianred3", size = 2, alpha = 0.5) +
-        geom_line(aes(y = cdr_ac_est), colour = "indianred3", size = 1, alpha = 0.5) +
-        geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_ac_lci"]), ymax = as.numeric(out[, "cdr_ac_uci"] )), 
-          fill = "indianred3", alpha = 0.3) +
-        geom_line(aes(y = cdr_cf_likely_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "longdash") +
-        geom_line(aes(y = cdr_cf_best_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
-        geom_line(aes(y = cdr_cf_worst_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
+        geom_point(aes(y = cdr_ac_est), shape = 22, colour = palette_cb[7], size = 2, alpha = 0.5, fill = "white") +
+        geom_line(aes(y = cdr_ac_est, colour = "a"), lwd = 1, alpha = 0.5) +
+        geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_ac_lci"]), ymax = as.numeric(out[, "cdr_ac_uci"] ), 
+          fill = "a"), alpha = 0.3) +
+        geom_line(aes(y = cdr_cf_likely_est, colour = "b"), lwd = 1, alpha = 0.5) +
+        geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_cf_worst_est"]), ymax = as.numeric(out[, "cdr_cf_best_est"] ), 
+          fill = "b"), alpha = 0.2) +
         theme_bw() + 
-        theme(plot.margin = unit(c(1, 0, 0, 0.5), "cm") ) +
-        scale_x_date("", date_labels = "%b %Y", breaks = "6 months", expand=c(0,0)) +
-        scale_y_continuous("crude death rate (per 10,000 person-days)", limits=c(0, max(out$cdr_ac_uci) + 0.1)) +
+        theme(plot.margin = unit(c(1, 0.5, 0, 0.5), "cm") ) +
+        scale_x_date("", date_labels = "%b %Y", breaks = "6 months", expand = c(0,0)) +
+        scale_y_continuous("crude death rate (per 10,000 person-days)", breaks = seq(0, 1.2, by = 0.2),
+          limits=c(0, max(out$cdr_ac_uci) + 0.1)) +
+        scale_colour_manual(name = "", values = c("a" = palette_cb[7], "b" = palette_cb[4]), 
+          labels = c("observed - point estimate", "counterfactual - likely") ) +
+        scale_fill_manual(name = "", guide = "legend", values = c("a" = palette_cb[7], "b" = palette_cb[4]), 
+          labels = c("observed - 95%CI", "counterfactual - range")) +
         theme(axis.text = element_text(size = 11, colour = "grey20"), 
-          axis.title = element_text(size = 11, colour = "grey20"), axis.text.x = element_text(angle = 30, hjust = 1))
-
+          axis.title = element_text(size = 11, colour = "grey20"), axis.text.x = element_text(angle = 30, hjust = 1),
+          legend.position = "bottom")
       plot_cdr
       ggsave(paste(country, "_", "cdr", "_trend.png", sep=""), height = 15, width = 22, units = "cm", dpi = "print")
 
       # evolution of actual and counterfactual death rate - children under 5y
       plot_cdr_u5 <- ggplot(out, aes(x = date) ) +
-        geom_point(aes(y = cdr_u5_ac_est), colour = "indianred3", size = 2, alpha = 0.5) +
-        geom_line(aes(y = cdr_u5_ac_est), colour = "indianred3", size = 1, alpha = 0.5) +
-        geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_u5_ac_lci"]), ymax = as.numeric(out[, "cdr_u5_ac_uci"] )), 
-          fill = "indianred3", alpha = 0.3) +
-        geom_line(aes(y = cdr_u5_cf_likely_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "longdash") +
-        geom_line(aes(y = cdr_u5_cf_best_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
-        geom_line(aes(y = cdr_u5_cf_worst_est), colour = palette_cb[4], alpha = 0.8, 
-          size = 1, linetype = "dotted") +
+        geom_point(aes(y = cdr_u5_ac_est), shape = 22, colour = palette_cb[7], size = 2, alpha = 0.5, fill = "white") +
+        geom_line(aes(y = cdr_u5_ac_est, colour = "a"), lwd = 1, alpha = 0.5) +
+        geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_u5_ac_lci"]), ymax = as.numeric(out[, "cdr_u5_ac_uci"] ), 
+          fill = "a"), alpha = 0.3) +
+        geom_line(aes(y = cdr_u5_cf_likely_est, colour = "b"), lwd = 1, alpha = 0.5) +
+        geom_ribbon(aes(x = date, ymin = as.numeric(out[, "cdr_u5_cf_worst_est"]), ymax = as.numeric(out[, "cdr_u5_cf_best_est"] ), 
+          fill = "b"), alpha = 0.2) +
         theme_bw() + 
-        theme(plot.margin = unit(c(1, 0, 0, 0.5), "cm") ) +
+        theme(plot.margin = unit(c(1, 0.5, 0, 0.5), "cm") ) +
         scale_x_date("", date_labels = "%b %Y", breaks = "6 months", expand = c(0,0)) +
-        scale_y_continuous("under 5y death rate (per 10,000 child-days)", limits = c(0, max(out$cdr_u5_ac_uci) + 0.1)) +
+        scale_y_continuous("under 5y death rate (per 10,000 child-days)", breaks = seq(0, 2.8, by = 0.4),
+          limits=c(0, max(out$cdr_u5_ac_uci) + 0.1)) +
+        scale_colour_manual(name = "", values = c("a" = palette_cb[7], "b" = palette_cb[4]), 
+          labels = c("observed - point estimate", "counterfactual - likely") ) +
+        scale_fill_manual(name = "", guide = "legend", values = c("a" = palette_cb[7], "b" = palette_cb[4]), 
+          labels = c("observed - 95%CI", "counterfactual - range")) +
         theme(axis.text = element_text(size = 11, colour = "grey20"), 
-          axis.title = element_text(size = 11, colour = "grey20"), axis.text.x = element_text(angle = 30, hjust = 1))
-
+          axis.title = element_text(size = 11, colour = "grey20"), axis.text.x = element_text(angle = 30, hjust = 1),
+          legend.position = "bottom")
       plot_cdr_u5
       ggsave(paste(country, "_", "cdr_u5", "_trend.png", sep=""), height = 15, width = 22, units = "cm", dpi = "print")
   
       # combine plots and save
       plot <- ggarrange(plot_cdr + theme(axis.text.x = element_blank() ), plot_cdr_u5, nrow = 2, labels = c("all ages", "children under 5y"),
         font.label = list(size = 10.5, color = "grey20"), common.legend = TRUE, align = "v", vjust = 1, hjust = 0)
-      print(plot)
+      plot
       ggsave(paste(country, "_", "cdr_cdr_u5_trends_pop_wide.png", sep=""), height = 20, width = 30, 
         units = "cm", dpi = "print")
-      ggsave(paste(country, "_", "cdr_cdr_u5_trends_pop_long.png", sep=""), height = 20, width = 15, 
+      ggsave(paste(country, "_", "cdr_cdr_u5_trends_pop_long.png", sep=""), height = 23, width = 18, 
         units = "cm", dpi = "print")
       
   #...................................  
