@@ -1,5 +1,5 @@
 ## The death toll of armed conflict and food insecurity in north-east Nigeria, 2016-2019: a statistical study
-Francesco Checchi, Amy Gimma, Christopher I Jarvis, Kevin van Zandvoort, Abdihamid Warsame
+Francesco Checchi, Christopher I Jarvis, Kevin van Zandvoort, Abdihamid Warsame
 
 francesco.checchi@lshtm.ac.uk
 
