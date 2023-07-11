@@ -75,7 +75,7 @@
         
     # Reshape wide into a matrix
       # first expand so as to make sure that all combinations of districts and time points are featured
-      x1 <- expand.grid(stratum_names_pop, stratum_names_pop, tm)
+      x1 <- expand.grid(stratum_names_pop, stratum_names_pop, tm_pop)
       colnames(x1) <- c("stratum_destination", "stratum_origin", "tm")
       idp_matrix <- merge(x1, idp_prmn, by = c("stratum_destination", "stratum_origin", "tm"), all.x = TRUE, sort = TRUE)
         # set all NA values to 0
@@ -84,7 +84,7 @@
       # then reshape wide so as to form a matrix of stratum by stratum, with tm as a further dimension
       out <- data.frame()
         
-      for (i in 1:max(tm)) {
+      for (i in 1:max(tm_pop)) {
         # select data for one time unit
         x1 <- subset(idp_matrix, tm == i)
         x1 <- subset(x1, select = -tm)
@@ -162,24 +162,24 @@
     pop <- data.frame() 
 
     # Proportion of internally displaced persons and returnees within each stratum - estimated
-    prop_idp_in <- matrix(NA, nrow = length(stratum_names_pop), ncol = length(tm))
+    prop_idp_in <- matrix(NA, nrow = length(stratum_names_pop), ncol = length(tm_pop))
     rownames(prop_idp_in) <- stratum_names
-    colnames(prop_idp_in) <-  tm
+    colnames(prop_idp_in) <-  tm_pop
     
   #.........................................
   ## Population flows
     
     # Refugee net flow
-    ref_flow <- matrix(ref_flow_source, nrow = length(stratum_names_pop), ncol = length(tm))
+    ref_flow <- matrix(ref_flow_source, nrow = length(stratum_names_pop), ncol = length(tm_pop))
     rownames(ref_flow) <- stratum_names_pop
-    colnames(ref_flow) <-  tm
+    colnames(ref_flow) <-  tm_pop
 
     # IDP and returnee flows
       # total movement (rows = from, cols = to)
-      flow <- array(NA, dim = c(length(stratum_names_pop), length(stratum_names_pop), length(tm)),
-        dimnames = list(stratum_names_pop, stratum_names_pop, tm))
+      flow <- array(NA, dim = c(length(stratum_names_pop), length(stratum_names_pop), length(tm_pop)),
+        dimnames = list(stratum_names_pop, stratum_names_pop, tm_pop))
       # pass data into array
-      for (i in 1:max(tm)) {
+      for (i in 1:max(tm_pop)) {
         flow[,,i] <- idp_matrix[(1 + length(stratum_names_pop) * (i-1)):(length(stratum_names_pop) * i), ]
       }
 
@@ -196,15 +196,15 @@ for (i in 1:nrow(pop_sources)) {
   pop_source <- get(paste(pop_sources[i, "pop_source"]))
   tm_pop_source <- pop_sources[i, "tm"]
     # Temporary matrix to hold estimated figures for this population source
-    x1 <- as.data.frame(matrix(nrow = length(stratum_names_pop), ncol = length(tm)))
+    x1 <- as.data.frame(matrix(nrow = length(stratum_names_pop), ncol = length(tm_pop)))
   
   #.........................................
   ## Forward calculation from known time point
     # at the start of forward calculation, population figures come from the known source
     x1[, tm_pop_source] <- pop_source
     # forward loop
-    for (j in (tm_pop_source + 1) : max(tm)) {
-      if (tm_pop_source >= max(tm)) break;
+    for (j in (tm_pop_source + 1) : max(tm_pop)) {
+      if (tm_pop_source >= max(tm_pop)) break;
       x1[, j] <- (1 + g) * x1[, j-1] + rowSums(t(flow[, , j-1])) - rowSums(flow[, , j-1]) + ref_flow[, j-1]
     }
     
@@ -213,7 +213,7 @@ for (i in 1:nrow(pop_sources)) {
     # at the start of back-calculation, population figures come from the known source
     x1[, tm_pop_source] <- pop_source
     # backward loop  
-    for (j in (tm_pop_source - 1) : min(tm)) {
+    for (j in (tm_pop_source - 1) : min(tm_pop)) {
       x1[, j] <- ( x1[, j+1] - rowSums(t(flow[, , j])) + rowSums(flow[, , j]) - ref_flow[, j] ) / (1 + g)
     }
     
@@ -222,7 +222,7 @@ for (i in 1:nrow(pop_sources)) {
     
     # add stratum information
     x1 <- cbind(as.character(stratum_names_pop), x1)
-    colnames(x1) <- c("stratum", paste("tm", tm, sep = ""))
+    colnames(x1) <- c("stratum", paste("tm", tm_pop, sep = ""))
     
     # reshape long
     x1 <- reshape(data = x1, idvar = "stratum", timevar = "tm", v.names = "pop", 
@@ -284,15 +284,15 @@ for (i in 1:nrow(pop_sources)) {
       pop_loop <- subset(pop_loop, select = -stratum)
     
     # Reset IDP matrix
-    prop_idp_in <- matrix(NA, nrow = length(stratum_names_pop), ncol = length(tm))
+    prop_idp_in <- matrix(NA, nrow = length(stratum_names_pop), ncol = length(tm_pop))
     rownames(prop_idp_in) <- stratum_names_pop
-    colnames(prop_idp_in) <-  tm
+    colnames(prop_idp_in) <-  tm_pop
     
     # Supply starting conditions at Jan 2016
     prop_idp_in[, 37] <- idp_unpess_prop[, 2]
     
     # Forward calculate IDP compartments from Jan 2016 to the end of the period
-    for (k in 38:max(tm)) {
+    for (k in 38:max(tm_pop)) {
       prop_idp_in[, k] <- prop_idp_in[, k-1] + colSums(flow[, , k-1]) / pop_loop[, k-1] - 
         (rowSums(flow[, , k-1]) / pop_loop[, k-1]) * prop_idp_in[, k-1]
     }
@@ -301,7 +301,7 @@ for (i in 1:nrow(pop_sources)) {
       # add stratum information
       prop_idp_in <- as.data.frame(prop_idp_in)
       prop_idp_in <- cbind(as.character(stratum_names_pop), prop_idp_in)
-      colnames(prop_idp_in) <- c("stratum", paste("tm", tm, sep = ""))
+      colnames(prop_idp_in) <- c("stratum", paste("tm", tm_pop, sep = ""))
       
       # reshape long
       prop_idp_in <- reshape(data = prop_idp_in, idvar = "stratum", timevar = "tm", 
@@ -347,7 +347,7 @@ for (i in 1:nrow(pop_sources)) {
     colnames(idp_lv) <- c("stratum", "tm", "idp_lv")
     
     # Merge with overall time series
-    idp_lv <- merge(ts, idp_lv, by=c("stratum", "tm"), all = TRUE, sort = TRUE)
+    idp_lv <- merge(ts[, c("tm", "stratum", "m", "y")], idp_lv, by=c("stratum", "tm"), all = TRUE, sort = TRUE)
     
     # Restrict date range to that available
     idp_lv <- subset(idp_lv, y > 2015)

@@ -111,9 +111,9 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_population_data", "im
     }
     
     # Execute population estimation script
-    f_source_part(script_2, "#place1#", "#place2#")
-    f_source_part(script_2, "#place3#", "#place6#")
-    f_source_part(script_2, "#place7#", "#place8#")
+    f_source_part(script_2, "place1#", "place2#")
+    f_source_part(script_2, "place3#", "place6#")
+    f_source_part(script_2, "place7#", "place8#")
 
     # Update predictor data accordingly
       # using new population estimates, compute mean population and IDP proportion 
@@ -141,8 +141,8 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_population_data", "im
       y_hat <- paste("cdr", jj, sep = "")
       
       # merge with dependent data and categorise so as to be ready for model fitting
-      f_source_part(script_4, "#place2#", "#place4#")
-      f_source_part(script_4, "#place5#", "#place6#")
+      f_source_part(script_4, "place2#", "place4#")
+      f_source_part(script_4, "place5#", "place6#")
       
       # update model fit and recalculate robust SEs for fixed-effect models
       if (y_hat == "cdr") {
@@ -166,12 +166,12 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_population_data", "im
     ts_ac <- ts_ac[, ! colnames(ts_ac) %in% c("pop_average_base", "pop_average_u5_base")]
 
     # Estimate mortality (only for likely scenario and for entire population-period)
-    f_source_part(script_5, "#place1#", "#place2#")    
-    f_source_part(script_5, "#place3#", "#place6#")
-    f_source_part(script_5, "#place7#", "#place8#")
+    f_source_part(script_5, "place1#", "place2#")    
+    f_source_part(script_5, "place3#", "place6#")
+    f_source_part(script_5, "place7#", "place8#")
 
     # Add result to output
-    out_sens_pop[ii, out_cols] <- out[out_cols]
+    out_sens_pop[ii, out_cols] <- out[names(out) %in% out_cols]
   }  
 
   #...................................  
@@ -187,12 +187,13 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_population_data", "im
       x1 <- data.frame(x1)
       x1 <- x1[complete.cases(x1), ]
       colnames(x1)[! colnames(x1) %in% out_cols] <- paste("var", 1:length(labs), sep = "")
-      x1[, out_cols] <- apply(x1[, out_cols], c(1,2), function(x) {as.numeric(trimws(gsub(",", "", x)))})
+      x1[, out_cols] <- lapply(x1[, out_cols], trimws)
+      x1[, out_cols] <- lapply(x1[, out_cols], function(x) gsub(",", "", x))
+      x1[, out_cols] <- lapply(x1[, out_cols], as.numeric)
       x1 <- melt(x1, id.vars = grep("var", colnames(x1)))
       x1[, grep("var", colnames(x1))] <- lapply(x1[, grep("var", colnames(x1))], factor)
       if ("var2" %in% colnames(x1)) {x1[, "group_var"] <- paste(x1[, "var2"], x1[, "variable"], sep = "_")}
-      labs <- gsub("[.]", " ", labs)
-      
+            
       # plot actual and excess death toll, by age
       if (length(labs == 1)) {
         for (jj in c("", "_u5") ) {
@@ -212,9 +213,8 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_population_data", "im
       
       if (length(labs == 2)) {
         for (jj in c("", "_u5") ) {
-          x2 <- subset(x1, variable %in% 
-              c(paste("toll", jj, "_ac_est", sep = ""), paste("toll", jj, "_ex_likely_est", sep = "") ) )
-          plot <- ggplot(x2, 
+          plot <- ggplot(subset(x1, variable %in% 
+              c(paste("toll", jj, "_ac_est", sep = ""), paste("toll", jj, "_ex_likely_est", sep = "") ) ), 
             aes(y = value, x = var1, group = group_var, colour = variable, linetype = var2)) +
             geom_point(size = 3, alpha = 0.50) +
             geom_line(size = 1.5, alpha = 0.50) +
@@ -223,21 +223,15 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_population_data", "im
             scale_x_discrete(labs[1]) +
             labs(linetype = labs[2]) +
             theme_bw() +
-            theme(plot.margin = margin(c(1, 0, 0, 0), unit = "cm")) +        
             theme(axis.title = element_text(size = 10, colour = "grey20")) +
-            theme(legend.title = element_text(size = 10, colour = "grey20"), legend.position = "none") +
-            annotate("text", x = levels(x2[, "var1"])[1], y = subset(x2, var1 == levels(x2[, "var1"])[1])[, "value"],
-              label = subset(x2, var1 == levels(x2[, "var1"])[1])[, "var2"], size = 4,
-              hjust = 2, colour = c(rep(palette_cb[7], length(subset(x2, var1 == levels(x2[, "var1"])[1])[, "var2"]) / 2),
-                rep(palette_cb[8], length(subset(x2, var1 == levels(x2[, "var1"])[1])[, "var2"]) / 2)) )
+            theme(legend.title = element_text(size = 10, colour = "grey20"), legend.position = "bottom") 
           assign(paste("plot_cdr", jj, sep = ""), plot)
         }
       }
 
       # arrange both plots side by side and save
-      plot <- ggarrange(plot_cdr+ theme(axis.title.x = element_blank()), plot_cdr_u5, nrow = 2, 
-        labels = c("all ages", "children under 5y"),
-        font.label = list(size = 10.5, color = "grey20"), align = "v", vjust = 1.5, hjust = 0)
+      plot <- ggarrange(plot_cdr, plot_cdr_u5, nrow = 2, labels = c("all ages", "children under 5y"),
+        font.label = list(size = 10.5, color = "grey20"), common.legend = TRUE, align = "v", vjust = 0, hjust = 0)
       print(plot)
       ggsave(paste(country, "_", "sensitivity_pop.png", sep=""), height = 15, width = 22, 
         units = "cm", dpi = "print")
@@ -273,8 +267,8 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_u5dr_data", "implemen
       
     # Aggregate number of deaths by survey
     hh_y_obs_base[, "n_hh"] <- 1
-    svy_y_obs <- aggregate(hh_y_obs_base[, c("n_died_u5", "n_hh")], 
-      by = list("survey_id" = hh_y_obs_base$survey_id), FUN = sum, na.rm = TRUE)
+    svy_y_obs <- aggregate(hh_y_obs_base[, c("n_died", "n_died_u5", "n_hh")], 
+      by = list("survey_id" = hh_y_obs_base$survey_id), FUN = sum)
     
     # Merge in recall period of surveys
     hh_y_obs_base <- merge(hh_y_obs_base, surveys[, c("survey_id", "recall_days")], by = "survey_id")
@@ -293,8 +287,8 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_u5dr_data", "implemen
       
       # for each survey, figure out...
         # how many undetected deaths U5
-        svy_y_obs[, "n_died_u5_u"] <- round(svy_y_obs[, "n_died_u5"] * 
-          (out_sens_u5dr[ii, "prop_u"]/(1 - out_sens_u5dr[ii, "prop_u"])), 0)      
+        svy_y_obs[, "n_died_u5_u"] <- svy_y_obs[, "n_died_u5"] * 
+          (out_sens_u5dr[ii, "prop_u"]/(1 - out_sens_u5dr[ii, "prop_u"]))      
         
         # how many undetected deaths U5 per household on average
         svy_y_obs[, "n_died_u5_u_mean"] <- svy_y_obs[, "n_died_u5_u"] / svy_y_obs[, "n_hh"]     
@@ -309,9 +303,9 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_u5dr_data", "implemen
       
       # for each household, generate a corresponding random person-time (U5 and all age) taking into account the undetected deaths
       hh_y_obs_aug[, "ptime_u5_u"] <- hh_y_obs_aug[, "n_died_u5_u"] * 
-        hh_y_obs_aug[, "recall_days"] * as.numeric(sens_u5dr[sens_u5dr[, "parameter"] == "recall_prop", "value"])
-      hh_y_obs_aug[, "ptime_u5"] <- round(hh_y_obs_aug[, "ptime_u5"] + hh_y_obs_aug[, "ptime_u5_u"], 0)
-      hh_y_obs_aug[, "ptime"] <- round(hh_y_obs_aug[, "ptime"] + hh_y_obs_aug[, "ptime_u5_u"], 0)
+        hh_y_obs_aug[, "recall_days"] * sens_u5dr[sens_u5dr[, "parameter"] == "recall_prop", "value"]
+      hh_y_obs_aug[, "ptime_u5"] <- hh_y_obs_aug[, "ptime_u5"] + hh_y_obs_aug[, "ptime_u5_u"]
+      hh_y_obs_aug[, "ptime"] <- hh_y_obs_aug[, "ptime"] + hh_y_obs_aug[, "ptime_u5_u"]
       
     # Update model fits using new independent data, for both CDR and U5DR
     for (jj in c("", "_u5"))  {
@@ -320,9 +314,9 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_u5dr_data", "implemen
       hh_y_obs <- hh_y_obs_aug
 
       # merge with dependent data and categorise so as to be ready for model fitting
-      f_source_part(script_4, "#place1#", "#place2#")
-      f_source_part(script_4, "#place3#", "#place4#")
-      f_source_part(script_4, "#place5#", "#place6#")
+      f_source_part(script_4, "place1#", "place2#")
+      f_source_part(script_4, "place3#", "place4#")
+      f_source_part(script_4, "place5#", "place6#")
       
       # update model fit and recalculate robust SEs for fixed-effect models
       if (y_hat == "cdr") {
@@ -339,32 +333,28 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_u5dr_data", "implemen
 
     # Estimate mortality (only for likely scenario and for entire population-period)
     ts_ac <- ts_ac_base
-    f_source_part(script_5, "#place1#", "#place2#")    
-    f_source_part(script_5, "#place3#", "#place4#")
+    f_source_part(script_5, "place1#", "place2#")    
+    f_source_part(script_5, "place3#", "place4#")
       # merge counterfactual population with corresponding scenario time series
       for (jj in grep("cf", scenarios, value = TRUE)) {
+        pop <- get(paste("pop_", jj, sep = ""))
         x2 <- get(paste("ts_", jj, sep = ""))
         x2 <- x2[, ! colnames(x2) %in% c("pop_average", "pop_average_u5", "prop_idp", "dep_rate", "arr_rate")]
-        pop <- get(paste("pop_", jj, sep = ""))
         x2 <- merge(x2[, ! colnames(x2) %in% c("m", "y")], pop, by = c("admin1", "stratum", "tm"), all.x = TRUE)
-        x2 <- subset(x2, tm %in% tm_analysis_start:tm_analysis_end)
         assign(paste("ts_", jj, sep = ""), x2)
       }
-    ts_ac <- subset(ts_ac, tm %in% tm_analysis_start:tm_analysis_end)     
-    f_source_part(script_5, "#place5#", "#place6#")
-    f_source_part(script_5, "#place7#", "#place8#") 
+    f_source_part(script_5, "place5#", "place6#")    
+    f_source_part(script_5, "place7#", "place8#") 
     
     # Add result to output
-    out_sens_u5dr[ii, out_cols] <- out[out_cols]
+    out_sens_u5dr[ii, out_cols] <- out[names(out) %in% out_cols]
   }  
 
   #...................................  
   ## Write and graph output
 
     # Aggregate runs of output
-    out_sens_u5dr[, out_cols] <- apply(out_sens_u5dr[, out_cols], c(1,2), function(x) {as.numeric(trimws(gsub(",", "", x)))})
     out_sens_u5dr <- aggregate(out_sens_u5dr[, out_cols], by = list(out_sens_u5dr$prop_u), median, na.rm = TRUE)
-    colnames(out_sens_u5dr)[1] <- "prop_u"
     
     # Write output
     write.csv(out_sens_u5dr, paste(country, "_out_sens_u5dr.csv", sep=""), row.names=FALSE)
@@ -382,28 +372,21 @@ if (unique(sens_pars[sens_pars[, "sens_analysis"] == "bias_u5dr_data", "implemen
 
       # plot actual and excess death toll, by age
       for (jj in c("", "_u5") ) {
-        x2 <- subset(x1, variable %in% 
-          c(paste("toll", jj, "_ac_est", sep = ""), paste("toll", jj, "_ex_likely_est", sep = "") ) )
-        x2[grep("ac", x2[, "variable"]), "variable2"] <- "deaths under observed conditions  "
-        x2[grep("ex", x2[, "variable"]), "variable2"] <- "excess deaths"
-        plot <- ggplot(x2, aes(y = value, x = prop_u, colour = variable2)) +
+        plot <- ggplot(subset(x1, variable %in% 
+            c(paste("toll", jj, "_ac_est", sep = ""), paste("toll", jj, "_ex_likely_est", sep = "") ) ), 
+          aes(y = value, x = prop_u, colour = variable)) +
           geom_point(size = 3, alpha = 0.50) +
           geom_line(size = 1.5, alpha = 0.50) +
-          scale_colour_manual(values = c(palette_cb[7], palette_cb[8])) +
-          scale_y_continuous("estimated death toll", labels = scales::comma, 
-            breaks = seq(0, 5000000, by = 100000), limits = c(min(x2[, "value"], na.rm = TRUE) - 50000,
-              max(x2[, "value"], na.rm = TRUE) + 50000) ) +
-          scale_x_continuous("percentage of under 5y deaths not detected", limits = range(x1[, "prop_u"]),
-            labels = label_percent(accuracy = 1)) +
+          scale_colour_manual(values = c(palette_cb[7], palette_cb[8]) , guide = FALSE) +
+          scale_y_continuous("estimated death toll", labels = scales::comma) +
+          scale_x_discrete(labs[1]) +
           theme_bw() +
-          theme(axis.title = element_text(size = 10, colour = "grey20"), legend.position = "top",
-            legend.title = element_blank(), legend.text = element_text(size = 10, colour = "grey20"))
+          theme(axis.title = element_text(size = 10, colour = "grey20"))
         assign(paste("plot_cdr", jj, sep = ""), plot)
       }
 
       # arrange both plots side by side and save
-      plot <- ggarrange(plot_cdr + theme(axis.title.x = element_blank()), plot_cdr_u5, 
-        nrow = 2, labels = c("all ages", "children under 5y"),
+      plot <- ggarrange(plot_cdr, plot_cdr_u5, nrow = 2, labels = c("all ages", "children under 5y"),
         font.label = list(size = 10.5, color = "grey20"), common.legend = TRUE, align = "v", vjust = 0, hjust = 0)
       print(plot)
       ggsave(paste(country, "_", "sensitivity_u5dr.png", sep=""), height = 15, width = 22, 

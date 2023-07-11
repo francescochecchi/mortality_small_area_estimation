@@ -507,7 +507,7 @@ for (i in 1:nrow(surveys) ) {
       surveys[i, "lshtm_cdr.m.uci"] <- exp(summary(fit)$coefficients[[1]] + 1.96 * summary(fit)$coefficients[[2]] ) * 10000
       
       # due to injury/trauma (only if there are data)
-      if (is.na(inj_codes)==FALSE) {
+      if (all(is.na(inj_codes))==FALSE) {
         fit <- svyglm(n_died_inj~NULL, survey_design, family="poisson", offset=log(ptime) )  
         surveys[i, "lshtm_cdr_inj_est"] <- exp(summary(fit)$coefficients[[1]] ) * 10000
         surveys[i, "lshtm_cdr_inj_log_se"] <- summary(fit)$coefficients[[2]]
