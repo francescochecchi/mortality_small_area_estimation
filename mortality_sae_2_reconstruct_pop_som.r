@@ -226,7 +226,7 @@ for (i in 1:nrow(pop_sources)) {
     
     # reshape long
     x1 <- reshape(data = x1, idvar = "stratum", timevar = "tm", v.names = "pop", 
-      varying = list(names(x1)[2:73]), direction = "long")
+      varying = list(names(x1)[tm_pop+1]), direction = "long")
       
     # add population source
     x1[, "pop_source"] <- pop_sources[i, "pop_source"]
@@ -289,10 +289,11 @@ for (i in 1:nrow(pop_sources)) {
     colnames(prop_idp_in) <-  tm_pop
     
     # Supply starting conditions at Jan 2016
-    prop_idp_in[, 37] <- idp_unpess_prop[, 2]
+    x1 <- t_units[which(t_units$y == 2016 & t_units$m == 1), "tm"]
+    prop_idp_in[, x1] <- idp_unpess_prop[, 2]
     
     # Forward calculate IDP compartments from Jan 2016 to the end of the period
-    for (k in 38:max(tm_pop)) {
+    for (k in (x1+1):max(tm_pop)) {
       prop_idp_in[, k] <- prop_idp_in[, k-1] + colSums(flow[, , k-1]) / pop_loop[, k-1] - 
         (rowSums(flow[, , k-1]) / pop_loop[, k-1]) * prop_idp_in[, k-1]
     }
@@ -305,7 +306,7 @@ for (i in 1:nrow(pop_sources)) {
       
       # reshape long
       prop_idp_in <- reshape(data = prop_idp_in, idvar = "stratum", timevar = "tm", 
-        v.names = "prop_idp", varying = list(names(prop_idp_in)[2:73]), direction = "long")
+        v.names = "prop_idp", varying = list(names(prop_idp_in)[tm_pop+1]), direction = "long")
       
       # add population source
       prop_idp_in[, "pop_source"] <- pop_sources[i, "pop_source"]
