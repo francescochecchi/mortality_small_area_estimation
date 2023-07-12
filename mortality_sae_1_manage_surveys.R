@@ -52,8 +52,10 @@
     hh_obs <- data.frame(matrix(NA, ncol = length(cols_ind_questionnaire) ))
     colnames(hh_obs) <- cols_ind_questionnaire
 
- 
-
+    # identify dates of analysis start and end
+    date_analysis_start <- lubridate::ymd(paste(y_analysis_start, m_analysis_start, "1", sep = "-"))
+    date_analysis_end <- lubridate::ymd(paste(y_analysis_end, m_analysis_end, lubridate::days_in_month(m_analysis_end), sep = "-"))
+    
 #.........................................................................................                            
 ### Re-analysing each survey, one by one, and adding surveys with datasets to the all-household dataset
 #.........................................................................................
@@ -74,8 +76,25 @@ for (i in 1:nrow(surveys) ) {
   ##..........................................
   ## >>>OPTION 0: If the survey is excluded....
       
-  if (surveys[i, "exclude"] == "Y") { next }  # skip to next survey
+    # Exclude if there is an exclusion reason...
+    if (surveys[i, "exclude"] == "Y") { next }  # skip to next survey
 
+    # Exclude if the survey is not within the analysis period...
+      # dates of survey data collection start and end
+      date_svy_start <- lubridate::ymd(paste(surveys[i, "year_survey"], surveys[i, "month_start"], "1", sep = "-"))
+      if (! is.na(surveys[i, "date_start"])) {date_svy_start <- surveys[i, "date_start"]}
+      if (surveys[i, "month_end"] < surveys[i, "month_start"]) {x1 <- 1} else {x1 <- 0}
+      date_svy_end <- lubridate::ymd(paste((surveys[i, "year_survey"] + x1), surveys[i, "month_end"], 
+        lubridate::days_in_month(surveys[i, "month_end"]), sep = "-"))
+      if (! is.na(surveys[i, "date_end"])) {date_svy_end <- surveys[i, "date_end"]}
+      
+      # dates of recall period start and end
+      date_recall_end <- date_svy_start + round((date_svy_end - date_svy_start) / 2, 0) 
+      date_recall_start <- date_recall_end - surveys[i, "recall_days"]
+      
+      # apply exclusion
+      if (date_recall_start < date_analysis_start | date_recall_end > date_analysis_end) { next }  # skip to next survey
+    
   ##..........................................
   ## >>>OPTION 1: If the survey does not have a dataset available for re-analysis....
       
@@ -507,7 +526,7 @@ for (i in 1:nrow(surveys) ) {
       surveys[i, "lshtm_cdr.m.uci"] <- exp(summary(fit)$coefficients[[1]] + 1.96 * summary(fit)$coefficients[[2]] ) * 10000
       
       # due to injury/trauma (only if there are data)
-      if (is.na(inj_codes)==FALSE) {
+      if (all(is.na(inj_codes))==FALSE) {
         fit <- svyglm(n_died_inj~NULL, survey_design, family="poisson", offset=log(ptime) )  
         surveys[i, "lshtm_cdr_inj_est"] <- exp(summary(fit)$coefficients[[1]] ) * 10000
         surveys[i, "lshtm_cdr_inj_log_se"] <- summary(fit)$coefficients[[2]]
@@ -695,28 +714,27 @@ for (i in 1:nrow(surveys) ) {
   #...................................  
   ## Preparatory steps
     # exclude non-eligible surveys and select only needed columns
-    df <- subset(surveys, exclude=="N")[, c("date_end", "date_start", "month_end", "year_survey", "recall_days", "survey_id")] 
+    df <- subset(surveys, exclude=="N")[, c("date_end", "date_start", "month_end", "month_start", "year_survey", "recall_days", "survey_id")] 
         
     # fix date format
     df[, "date_start"] <- ymd(as.character(df[, "date_start"]))
     df[, "date_end"] <- ymd(as.character(df[, "date_end"]))
     
-    # calculate survey data collection mid-point date (i.e. average end date of recall period)
-      # assume survey mid-point dates are in the middle of the month (15th) if actual start/end dates are missing
-    for (i in 1:nrow(df) ) {
-      
-      if (is.na(df[i, "date_start"]) | is.na(df[i, "date_end"]) )
-        df[i, "date_recall_end"] <- ymd( paste(df[i, "year_survey"], df[i, "month_end"], 15, sep="/") )
-        else
-        df[i, "date_recall_end"] <- df[i, "date_end"] - (df[i, "date_end"] - df[i, "date_start"]) / 2
-    }
+    # dates of survey data collection start and end
+    df$date_svy_start <- ifelse(is.na(df$date_start), lubridate::ymd(paste(df$year_survey, df$month_start, "1", sep = "-")), ymd(df$date_start))
+    x1 <- sapply(df$month_end < df$month_start, sum)
+    df$date_svy_end <- ifelse(is.na(df$date_end), lubridate::ymd(paste((df$year_survey + x1), df$month_end, days_in_month(df$month_end), sep = "-")), 
+      ymd(df$date_end))
 
-    # calculate start date of recall period 
-    df[, "date_recall_start"] <- df[, "date_recall_end"] - df[, "recall_days"]
-      # fix data formats again
-      df[, "date_recall_start"] <- as.Date(df[, "date_recall_start"], origin ="1970-01-01")
-      df[, "date_recall_end"] <- as.Date(df[, "date_recall_end"], origin ="1970-01-01")
-      
+    # dates of recall period start and end
+    df$date_recall_end <- df$date_svy_start + round((df$date_svy_end - df$date_svy_start) / 2, 0) 
+    df$date_recall_start <- df$date_recall_end - df$recall_days
+    df$date_recall_end <- as.Date(df$date_recall_end)
+    df$date_recall_start <- as.Date(df$date_recall_start)
+    
+    # exclude surveys that fall outside of analysis period
+    df <- subset(df, date_recall_start >= date_analysis_start & date_recall_end <= date_analysis_end)
+    
     # calculate time increment variable from 1 to end of time series, for months of recall start and end
     df[, "tm_recall_start"] <- apply(df, 1, function(f_df, f_t_units)
       {f_t_units[f_t_units$y == year(f_df["date_recall_start"]) & 
@@ -896,15 +914,16 @@ for (i in 1:nrow(surveys) ) {
   x_labels_m[seq(1, length(x_labels_m), by=2)] <- ""
   x_labels_y <- unique(ts[, c("tm", "y")])[, "y"]
   
-  plot <- ggplot(subset(hh_data_avail, y >= y_excess_start), aes(x = tm, y = stratum) ) +
-    geom_tile(aes(fill=data_availability), colour = "grey80", show.legend = TRUE) + 
-    scale_x_continuous("month, year", expand = c(0,0), breaks = unique(ts[, c("tm", "m")])[, "tm"], labels = x_labels_m ) + 
-    scale_y_discrete(admin2_name, expand = c(0,0) ) + 
-    scale_fill_gradientn("data availability", colours = c("grey90", palette_cb[5], palette_cb[7]), values = c(0, 0.0000001, 1 )) +
-    facet_grid(admin1 ~ y, space = "free", scales = "free", switch="x") +
+  plot <- ggplot(subset(hh_data_avail, y >= y_analysis_start), aes(x = tm, y = stratum) )
+  plot <- plot + geom_tile(aes(fill=data_availability), colour = "grey80", show.legend = FALSE) + 
+    scale_x_continuous("month, year", expand=c(0,0), breaks = unique(ts[, c("tm", "m")])[, "tm"], labels = x_labels_m ) + 
+    scale_y_discrete(admin2_name, expand=c(0,0) ) + 
+    scale_fill_gradientn(colours = c("grey90", "yellow", "red"), 
+                         values = c(0, 0.0000001, 1 )) +
+    facet_grid(admin1 ~ y, space="free", scales="free", switch="x") +
     theme_bw() +
-    theme(legend.position = "top", strip.placement = "outside",
-          strip.background = element_rect(fill = NA, colour = "grey50"),
+    theme(strip.placement = "outside",
+          strip.background = element_rect(fill=NA, colour="grey50"),
           panel.spacing=unit(0,"cm"), strip.text.y = element_text(angle = 0))
   
   plot
@@ -930,11 +949,14 @@ for (i in 1:nrow(surveys) ) {
   
   #...................................   
   ## Histogram of survey quality score  
-  plot <- ggplot(subset(surveys, exclude == "N"), aes(x = quality_score))
-  plot <- plot + geom_histogram(fill = palette_cb[3], colour = palette_cb[6] , alpha = 0.5) + theme_bw() +
-    labs(x = "survey quality score", y = "number of surveys")
+  plot <- ggplot(subset(surveys, exclude == "N"), aes(x = quality_score)) + 
+    geom_histogram(fill = palette_cb[3], colour = palette_cb[6] , alpha = 0.5) + 
+    theme_bw() +
+    labs(x = "survey quality score", y = "number of surveys") +
+    theme(axis.title = element_text(colour= "grey20", size = 10)) +
+    theme(axis.text = element_text(colour= "grey20", size = 10))
   plot
-  ggsave(paste(country, "_svy_quality.png", sep=""), height = 10, width = 15, units = "cm", dpi = "print")
+  ggsave(paste(country, "_svy_quality.png", sep=""), height = 12, width = 20, units = "cm", dpi = "print")
 
   
   #...................................  
@@ -984,7 +1006,7 @@ for (i in 1:nrow(surveys) ) {
       for (i in 1:length(indicators) )  {
        x2 <- subset(x1, y %in% c(y_analysis_start:y_analysis_end) )[, c("y", "m", "date_recall", "survey_id", "admin1", indicators[i])]
        colnames(x2)[colnames(x2) == indicators[i]] <- "var" 
-       plot <- ggplot(subset(x2, y >= y_excess_start), aes(x = date_recall, y = var, group = survey_id) )
+       plot <- ggplot(subset(x2, y >= y_analysis_start), aes(x = date_recall, y = var, group = survey_id) )
        plot <- plot + geom_point( aes(color = admin1) ) + geom_line( aes(color = admin1) ) + 
          theme_bw() + theme(plot.margin = unit(c(0.5, 0.5, 1, 0.5), "cm") ) +
          labs(x = "\nmonth", y = names(indicators[i]) ) +
